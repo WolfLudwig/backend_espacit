@@ -1,0 +1,30 @@
+{
+  "name": "backend_espacit",
+  "version": "1.0.0",
+  "description": "Backend du projet Espacit",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/WolfLudwig/backend_espacit.git"
+  },
+  "author": "Ludwig",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/WolfLudwig/backend_espacit/issues"
+  },
+  "homepage": "https://github.com/WolfLudwig/backend_espacit#readme",
+  "dependencies": {
+    "bcrypt": "^5.0.0",
+    "body-parser": "^1.19.0",
+    "express": "^4.17.1",
+    "jsonwebtoken": "^8.5.1",
+    "mongoose": "^5.11.9",
+    "mongoose-unique-validator": "^2.0.3",
+    "multer": "^1.4.2",
+    "nodemon": "^2.0.6"
+  }
+}
