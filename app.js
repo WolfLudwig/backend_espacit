@@ -2,11 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 
-mongoose.connect('mongodb+srv://Admin_1:theBoys123@cluster0.pqby2.mongodb.net/Cluster0?retryWrites=true&w=majority',
-  { useNewUrlParser: true,
-    useUnifiedTopology: true })
-  .then(() => console.log('Connexion à MongoDB réussie !'))
-  .catch(() => console.log('Connexion à MongoDB échouée !'));
+
 
 const app = express();
 
@@ -18,6 +14,7 @@ app.use((req, res, next) => {
   });
 
 app.use(bodyParser.json());
+
 
 app.use((req, res, next) => {
   console.log('Requête reçue !');
@@ -37,5 +34,13 @@ app.use((req, res, next) => {
 app.use((req, res, next) => {
   console.log('Réponse envoyée avec succès !');
 });
+
+mongoose.connect('mongodb+srv://Admin_1:theBoys123@cluster0.pqby2.mongodb.net/Cluster0?retryWrites=true&w=majority',
+  { useNewUrlParser: true,
+    useUnifiedTopology: true })
+  .then(() => console.log('Connexion à MongoDB réussie !'))
+  .catch(() => console.log('Connexion à MongoDB échouée !'));
+
+
 
 module.exports = app;
