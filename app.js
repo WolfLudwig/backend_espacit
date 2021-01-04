@@ -1,6 +1,10 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
+require('dotenv').config({path: './config/.env'});
+const userRoutes = require('./routes/user.routes');
 const mongoose = require('mongoose');
+const {checkUser, requireAuth} = require('./middleware/auth.middleware');
 
 
 
@@ -14,7 +18,17 @@ app.use((req, res, next) => {
   });
 
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended: true}));
+app.use(cookieParser());
 
+//JWT
+app.get('*', checkUser);
+app.get('/jwtid', requireAuth, (req, res) => {
+  res.status(200).send(res.locals.user._id)
+})
+
+//Routes
+app.use('/api/user', userRoutes);
 
 app.use((req, res, next) => {
   console.log('Requête reçue !');

@@ -61,7 +61,7 @@ module.exports.deleteUser = async(req,res) => {
 };
 
 //ajouter un ami
-module.exports.friend= async (req,res) => {
+module.exports.friend = async (req,res) => {
     if (!ObjectID.isValid(req.params.id) || !ObjectID.isValid(req.body.idToFriend))
         return res.status(400).send('ID unknown : ' + req.params.id)
 
