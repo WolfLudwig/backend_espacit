@@ -63,14 +63,15 @@ module.exports.deleteUser = async(req,res) => {
 //ajouter un ami
 module.exports.friend = async (req,res) => {
     if (!ObjectID.isValid(req.params.id) || !ObjectID.isValid(req.body.idToFriend))
-        return res.status(400).send('ID unknown : ' + req.params.id)
+
+        return res.status(400).send('ID unknown : ' + req.params.id);
 
     try{
         //ajouter a la liste d'ami
         await UserModel.findByIdAndUpdate(
             req.params.id,
-            { $addToSet: { friend: req.body.idToFriend}},
-            {new: true, upsert: true},
+            { $addToSet: { friend: req.body.idToFriend }},
+            { new: true, upsert: true },
             (err,docs) => {
                 if (!err) res.status(201).json(docs);
                 else return res.status(400).json(err);
@@ -79,11 +80,11 @@ module.exports.friend = async (req,res) => {
         await UserModel.findByIdAndUpdate(
             req.body.idToFriend,
             { $addToSet: {friend: req.params.id }},
-            {new: true, upsert: true},
+            { new: true, upsert: true },
             (err,docs) => {
                 if (err) return res.status(400).json(err);
             }
-        )
+        );
     }
     catch(err)
     {
