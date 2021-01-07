@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 require('dotenv').config({path: './config/.env'});
 const userRoutes = require('./routes/user.routes');
+const postRoutes = require('./routes/post.routes');
 const mongoose = require('mongoose');
 const {checkUser, requireAuth} = require('./middleware/auth.middleware');
 
@@ -29,6 +30,7 @@ app.get('/jwtid', requireAuth, (req, res) => {
 
 //Routes
 app.use('/api/user', userRoutes);
+app.use('/api/post', postRoutes);
 
 app.use((req, res, next) => {
   console.log('Requête reçue !');
