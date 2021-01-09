@@ -7,7 +7,11 @@ const postRoutes = require('./routes/post.routes');
 const mongoose = require('mongoose');
 const {checkUser, requireAuth} = require('./middleware/auth.middleware');
 
-
+mongoose.connect('mongodb+srv://Admin_1:theBoys123@cluster0.pqby2.mongodb.net/Cluster0?retryWrites=true&w=majority',
+  { useNewUrlParser: true,
+    useUnifiedTopology: true })
+  .then(() => console.log('Connexion à MongoDB réussie !'))
+  .catch(() => console.log('Connexion à MongoDB échouée !'));
 
 const app = express();
 
@@ -28,35 +32,11 @@ app.get('/jwtid', requireAuth, (req, res) => {
   res.status(200).send(res.locals.user._id)
 })
 
+app.use('/images', express.static(path.join(__dirname, 'images')))
+
 //Routes
 app.use('/api/user', userRoutes);
 app.use('/api/post', postRoutes);
-
-app.use((req, res, next) => {
-  console.log('Requête reçue !');
-  next();
-});
-
-app.use((req, res, next) => {
-  res.status(201);
-  next();
-});
-
-app.use((req, res, next) => {
-  res.json({ message: 'Votre requête a bien été reçue !' });
-  next();
-});
-
-app.use((req, res, next) => {
-  console.log('Réponse envoyée avec succès !');
-});
-
-mongoose.connect('mongodb+srv://Admin_1:theBoys123@cluster0.pqby2.mongodb.net/Cluster0?retryWrites=true&w=majority',
-  { useNewUrlParser: true,
-    useUnifiedTopology: true })
-  .then(() => console.log('Connexion à MongoDB réussie !'))
-  .catch(() => console.log('Connexion à MongoDB échouée !'));
-
 
 
 module.exports = app;

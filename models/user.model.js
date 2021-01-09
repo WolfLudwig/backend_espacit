@@ -36,7 +36,7 @@ const userSchema = new mongoose.Schema(
         },
         //tableau d'amis pour l'utilisateur
         friend: {
-            type: [String]
+            type: [UserModel]
         },
        
         likes: {
