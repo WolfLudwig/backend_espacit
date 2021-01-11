@@ -4,7 +4,7 @@ const bcrypt = require('bcrypt');
 
 const userSchema = new mongoose.Schema(
     {
-        pseudo: {
+        username: {
             type: String,
             required: true,
             minlength: 3,
@@ -48,6 +48,7 @@ const userSchema = new mongoose.Schema(
     }
 );
 
+/*
 //fonction de lecture avant de sauvegarder les informations dans l'affichage: 'block',
 userSchema.pre("save", async function(next){
     const salt = await bcrypt.genSalt();
@@ -66,6 +67,7 @@ userSchema.statics.login = async function(email, password) {
     }
     throw Error('Adresse mail incorrecte')
 };
+*/
 
 const UserModel = mongoose.model('User', userSchema);
 

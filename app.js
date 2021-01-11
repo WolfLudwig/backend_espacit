@@ -1,11 +1,14 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
-require('dotenv').config({path: './config/.env'});
+const mongoose = require('mongoose');
+//const {checkUser, requireAuth} = require('./middleware/auth.middleware');
+//require('dotenv').config({path: './config/.env'});
+
+const authRoutes = require('./routes/auth.routes');
 const userRoutes = require('./routes/user.routes');
 const postRoutes = require('./routes/post.routes');
-const mongoose = require('mongoose');
-const {checkUser, requireAuth} = require('./middleware/auth.middleware');
+
 
 mongoose.connect('mongodb+srv://Admin_1:theBoys123@cluster0.pqby2.mongodb.net/Cluster0?retryWrites=true&w=majority',
   { useNewUrlParser: true,
@@ -26,15 +29,18 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser());
 
+/*
 //JWT
 app.get('*', checkUser);
 app.get('/jwtid', requireAuth, (req, res) => {
   res.status(200).send(res.locals.user._id)
 })
+*/
 
 app.use('/images', express.static(path.join(__dirname, 'images')))
 
 //Routes
+app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/post', postRoutes);
 
