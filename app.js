@@ -37,7 +37,7 @@ app.get('/jwtid', requireAuth, (req, res) => {
 })
 */
 
-app.use('/images', express.static(path.join(__dirname, 'images')))
+//app.use('/images', express.static(path.join(__dirname, 'images')))
 
 //Routes
 app.use('/api/auth', authRoutes);
