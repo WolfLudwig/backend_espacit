@@ -22,16 +22,35 @@ const PostSchema = mongoose.Schema(
             required: true,
         },
         comments: {
-            type: [
-                {
-                    commenterId: String,
-                    commenterPseudo: String,
-                    text: String,
-                    timestamp: Number,
-                }
-            ],
-            required: true,
+                type: [
+                    {
+                        type : mongoose.Schema.Types.ObjectId,
+                        ref : 'Comment'
+                    }
+                ],
+                required: true,
         },
+        relation : 
+             [
+                 {
+                     type : mongoose.Schema.Types.ObjectId,
+                     ref : 'Relation'
+                 }
+            ],        
+        category : 
+        [
+            {
+                type : mongoose.Schema.Types.ObjectId,
+                ref : 'Category'
+            }
+        ],
+        ressourceType : 
+        [
+            {
+            type : mongoose.Schema.Types.ObjectId,
+            ref : 'RessourceType',
+        }
+    ]
     },
     {
         timestamps: true,

@@ -2,6 +2,13 @@ const PostModel = require('../models/post.model');
 const postModel = require('../models/post.model');
 const UserModel = require('../models/user.model');
 const ObjectID = require('mongoose').Types.ObjectId;
+const CommentModel = require('../models/comment.model');
+const commentController = require('../controllers/comment.controller');
+const relationController = require('../controllers/relation.controller');
+const categoryController = require('../controllers/category.controller');
+const ressourceTypeController = require('../controllers/ressourceType.controller');
+const RelationModel = require('../models/relation.model');
+
 
 //Ressource
 module.exports.readPost = (req, res) =>{
@@ -12,12 +19,20 @@ module.exports.readPost = (req, res) =>{
 }
 
 module.exports.createPost = async (req, res) =>{
-    const newPost = new postModel({
+    const newComm = new CommentModel({
+        commenterId : req.body.posterId, 
+        commenterPseudo : req.body.commenterPseudo, 
+        text : req.body.text});
+    const newPost = new PostModel({
         posterId: req.body.posterId,
         message: req.body.message,
         video: req.body.video,
         likers: [],
         comments: [],
+        relation : [RelationModel.findOne(req.body.relation)],
+        category : req.body.category,
+        ressourceType : [req.body.ressourceType]
+
     });
 
     try{
@@ -131,24 +146,39 @@ module.exports.commentPost = async (req,res) => {
     return res.status(400).send("ID unknown : " + req.params.id);
 
     try {
+        const comm = commentController.addComment;
+
         return PostModel.findByIdAndUpdate(
             req.params.id,
             {
                 $push: {
                     comments: { 
-                        commenterId: req.body.commenterId,
-                        commenterPseudo: req.body.commenterPseudo,
-                        text: req.body.text,
-                        timesTamp: new Date().getTime(),
-                    }
+                        comm
+                    }            
                 },
             },
+
+
+        //return PostModel.findByIdAndUpdate(
+           // req.params.id,
+           // {
+               // $push: {
+                 //   comments: { 
+                  //      commenterId: req.body.commenterId,
+                  //      commenterPseudo: req.body.commenterPseudo,
+                  //      text: req.body.text,
+                  //      timesTamp: new Date().getTime(),
+                  //  }            
+              //  },
+          //  },
             { new: true },
             (err, docs) => {
                 if (!err) return res.send(docs);
                 else return res.status(400).send(err);
-            }
+            },
+            commentController.addComment
         );
+        
     }
     catch (err) {
         return res.status(400).send(err);
@@ -177,6 +207,7 @@ module.exports.editCommentPost = async (req,res) => {
     // catch (err) {
     //     return res.status(400).send(err);
     // }
+
 };
 
 module.exports.deleteCommentPost = (req, res) => {

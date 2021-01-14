@@ -4,10 +4,13 @@ const cookieParser = require('cookie-parser');
 require('dotenv').config({path: './config/.env'});
 const userRoutes = require('./routes/user.routes');
 const postRoutes = require('./routes/post.routes');
+const relationRoutes = require('./routes/relation.routes');
+const categoryRoutes = require('./routes/category.routes');
+const ressourceTypeRoutes = require('./routes/ressourceType.routes');
+const commentRoutes = require('./routes/comment.routes');
+
 const mongoose = require('mongoose');
 const {checkUser, requireAuth} = require('./middleware/auth.middleware');
-
-
 
 const app = express();
 
@@ -17,6 +20,7 @@ app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
     next();
   });
+  console.log("Je suis dans middleware 3 ");
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
@@ -29,8 +33,13 @@ app.get('/jwtid', requireAuth, (req, res) => {
 })
 
 //Routes
-app.use('/api/user', userRoutes);
+app.use('/api/users', userRoutes);
 app.use('/api/post', postRoutes);
+app.use('/api/relation', relationRoutes);
+app.use('/api/category', categoryRoutes);
+app.use('/api/ressourceType', ressourceTypeRoutes);
+app.use('/api/comment', commentRoutes);
+
 
 app.use((req, res, next) => {
   console.log('Requête reçue !');

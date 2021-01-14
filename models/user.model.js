@@ -55,16 +55,22 @@ userSchema.pre("save", async function(next){
     next();
 });
 
-userSchema.statics.login = async function(email, password) {
-    const user = await this.findOne({ email });
+userSchema.statics.login = async function(mail, password) {
+    console.log("je suis dans login 7");
+    const user = await this.findOne({ email : mail });
     if (user) {
+        //const pass = user.password;
         const auth = await bcrypt.compare(password, user.password);
         if (auth) {
+            console.log(user);
             return user;
+            
         }
+        
         throw Error('Mot de passe incorrect');
     }
     throw Error('Adresse mail incorrecte')
+    
 };
 
 const UserModel = mongoose.model('User', userSchema);
