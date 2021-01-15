@@ -128,3 +128,29 @@ module.exports.unfriend = async (req,res) => {
         
     }
 };
+
+module.exports.friendsList= async (req,res) => {
+    console.log("Je suis dans friendsList !! " + req.params.id);
+    if (!ObjectID.isValid(req.params.id))
+    {
+        return res.status(400).send('ID unknown : ' + req.params.id);
+    }
+  
+    UserModel.findOne({id: req.params.id},
+        (err,docs) => {
+            if (!err)
+            {
+                console.log(" j'ai récupéré mon utilisateur");
+                UserModel.find({friend : { $eq :  req.params.id }},
+                (err,docs) => {
+                    if (!err) res.status(201).json(docs);
+                    else return res.status(400).json(err);
+                })
+            }
+            else 
+            {
+                console.log(err + " je n'ai pas récupéré mon utilisateur");
+                return res.status(400).json(err);
+            }
+        });
+};

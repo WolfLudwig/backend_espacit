@@ -2,7 +2,6 @@ const router = require('express').Router();
 const authController = require('../controllers/auth.controller');
 const userController = require('../controllers/user.controller');
 
-console.log("Je suis dans userRoutes 4");
 
 
 //auth
@@ -14,6 +13,7 @@ router.get("/logout", authController.logout);
 //router.get("/", userController.getAllUsers);
 router.get("/:id", userController.userInfo);
 router.get("/", userController.getAllUsers);
+router.get("/myFriends/:id", userController.friendsList);
 router.put("/:id", userController.udapteUser);
 router.delete("/:id", userController.deleteUser);
 router.patch("friend/:id", userController.friend);
