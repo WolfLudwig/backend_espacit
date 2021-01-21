@@ -56,7 +56,6 @@ userSchema.pre("save", async function(next){
 });
 
 userSchema.statics.login = async function(mail, password) {
-    console.log("je suis dans login 7");
     const user = await this.findOne({ email : mail });
     if (user) {
         //const pass = user.password;

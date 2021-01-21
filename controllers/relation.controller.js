@@ -4,19 +4,27 @@ const ObjectID = require('mongoose').Types.ObjectId;
 //trouver tout les utilisateurs
 module.exports.getAllRelations = async (req, res) => {
     const relations = await RelationModel.find();
-    res.status(200).json(relations);
+    res.status(201).json(relations);
 };
 
-module.exports.getOneRelations = (req,res) => {
-    if (!ObjectID.isValid(req.params.id))
-    {
-        return res.status(400).send('ID unknown : ' + req.params.id)
-    }
-    RelationModel.findById(req.params.id, (err, docs) => {
+ module.exports.getOneRelationsById = (req,res) => {
+     if (!ObjectID.isValid(req.params.id))
+         return res.status(400).send('ID unknown : ' + req.params.id)
+     RelationModel.findById(req.params.id, (err, docs) => {
+         if (!err) res.send(docs);
+         else console.log('ID unknown : ' + err);
+     });
+ };
+
+module.exports.getOneRelationsByTitle = (req,res) => {
+
+    RelationModel.findOne({title  : {$eq : req.params.title}}, (err, docs) => {
         if (!err) res.send(docs);
-        else console.log('ID unknown : ' + err);
+        else console.log('unknown title : ' + err);
     });
 };
+
+
 
 //update user
 module.exports.udapteRelationDesc = async (req,res) => {

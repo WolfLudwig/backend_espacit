@@ -6,6 +6,10 @@ const PostSchema = mongoose.Schema(
             type: String,
             required: true
         },
+        posterPseudo: {
+            type : String,
+            required : true
+        },
         message: {
             type: String,
             trim: true,
@@ -18,39 +22,51 @@ const PostSchema = mongoose.Schema(
             type: String,
         },
         likers: {
-            type: [String],
+            type: 
+            [
+                {
+                    _id : String,
+                    pseudo : String,
+                    email : String,
+                }
+            ],
             required: true,
         },
         comments: {
-                type: [
-                    {
-                        type : mongoose.Schema.Types.ObjectId,
-                        ref : 'Comment'
-                    }
-                ],
-                required: true,
-        },
-        relation : 
+            type : [
+                {
+                    commenterId : String,
+                    commenterPseudo : String,
+                    text : String,
+                }
+
+        ]},
+        relation : { 
+            type :
              [
                  {
-                     type : mongoose.Schema.Types.ObjectId,
-                     ref : 'Relation'
+                     title : String,
+                     description : String,
                  }
-            ],        
-        category : 
+            ]},        
+        category : {
+            type : 
+
         [
             {
-                type : mongoose.Schema.Types.ObjectId,
-                ref : 'Category'
+                title : String,
+                description : String,
             }
-        ],
+        ]},
         ressourceType : 
+        {
+            type : 
         [
             {
-            type : mongoose.Schema.Types.ObjectId,
-            ref : 'RessourceType',
-        }
-    ]
+            title : String,
+            description : String,
+            }
+        ]        }
     },
     {
         timestamps: true,

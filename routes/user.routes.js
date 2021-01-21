@@ -8,10 +8,14 @@ const userController = require('../controllers/user.controller');
 router.post("/", authController.signUp);
 router.post("/:signIn", authController.signIn);
 router.get("/logout", authController.logout);
+router.get("/isLog", authController.isLog);
+
+
 
 // user dusplay (block),
 //router.get("/", userController.getAllUsers);
 router.get("/:id", userController.userInfo);
+router.get("/infos/:id", userController.userInfo);
 router.get("/", userController.getAllUsers);
 router.get("/myFriends/:id", userController.friendsList);
 router.put("/:id", userController.udapteUser);

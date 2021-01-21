@@ -4,7 +4,7 @@ const ObjectID = require('mongoose').Types.ObjectId;
 //trouver tout les utilisateurs
 module.exports.getAllCategories = async (req, res) => {
     const category = await CategoryModel.find();
-    res.status(200).json(category);
+    res.status(201).json(category);
 };
 
 //trouver un seul utilisateur
