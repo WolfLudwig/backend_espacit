@@ -61,7 +61,7 @@ userSchema.statics.login = async function(mail, password) {
         //const pass = user.password;
         const auth = await bcrypt.compare(password, user.password);
         if (auth) {
-            console.log(user);
+            console.log(user + " dans login du model user");
             return user;
             
         }

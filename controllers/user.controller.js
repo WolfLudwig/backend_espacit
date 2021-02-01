@@ -7,8 +7,34 @@ module.exports.getAllUsers = async (req, res) => {
     res.status(200).json(users);
 };
 
+module.exports.getAllUsersDistinct = async (req, res) => {
+
+    console.log( " DANS LE DISCTINCT");
+    console.log(req.params);
+
+    if (!ObjectID.isValid(req.params.id))
+    {
+        return res.status(400).send('ID unknown : ' + req.params.id)
+    }
+    //> db.demo1.find({$nor:[{$and:[{'StudentName':'David'},{'StudentMarks':78}]}]});
+    try {
+        const users = await UserModel.find({friend :{$not : req.params.id}}, (err, docs) =>
+        {
+            if(!err)res.status(200).json(users);
+            else res.status(400).send();
+            
+        });
+    }
+    catch(error)
+    {
+        res.status(400).send(error);
+    }
+    
+};
+
 //trouver un seul utilisateur
-module.exports.userInfo = (req,res) => {
+module.exports.userInfo = async (req,res) => {
+
     if (!ObjectID.isValid(req.params.id))
     {
         return res.status(400).send('ID unknown : ' + req.params.id)
@@ -17,10 +43,12 @@ module.exports.userInfo = (req,res) => {
         if (!err) res.send(docs);
         else console.log('ID unknown : ' + err);
     }).select('-password');
+
 };
 
 //update user
 module.exports.udapteUser = async (req,res) => {
+    
     if (!ObjectID.isValid(req.params.id))
         return res.status(400).send('ID unknown : ' + req.params.id)
 
@@ -61,25 +89,29 @@ module.exports.deleteUser = async(req,res) => {
 };
 
 //ajouter un ami
-module.exports.friend = async (req,res) => {
-    if (!ObjectID.isValid(req.params.id) || !ObjectID.isValid(req.body.idToFriend))
+module.exports.Addfriend = async (req,res) => {
+
+    console.log( "dns friend");
+    console.log(req.body);
+
+    if (!ObjectID.isValid(req.body.idFriend) || !ObjectID.isValid(req.body.myId))
 
         return res.status(400).send('ID unknown : ' + req.params.id);
 
     try{
         //ajouter a la liste d'ami
         await UserModel.findByIdAndUpdate(
-            req.params.id,
-            { $addToSet: { friend: req.body.idToFriend }},
+            req.body.myId,
+            { $addToSet: { friend: req.body.idFriend }},
             { new: true, upsert: true },
             (err,docs) => {
                 if (!err) res.status(201).json(docs);
                 else return res.status(400).json(err);
             }
         );
-        await UserModel.findByIdAndUpdate(
-            req.body.idToFriend,
-            { $addToSet: {friend: req.params.id }},
+         UserModel.findByIdAndUpdate(
+            req.body.idFriend,
+            { $addToSet: {friend: req.body.myId }},
             { new: true, upsert: true },
             (err,docs) => {
                 if (err) return res.status(400).json(err);
@@ -95,17 +127,19 @@ module.exports.friend = async (req,res) => {
 
 //enlever un ami
 module.exports.unfriend = async (req,res) => {
+
+    console.log( "dns unFriend");
     if (
-        !ObjectID.isValid(req.params.id) ||
-        !ObjectID.isValid(req.body.idToUnFriend)
+        !ObjectID.isValid(req.body.idFriend) ||
+        !ObjectID.isValid(req.body.myId)
         )
-        return res.status(400).send('ID unknown : ' + req.params.id)
+        return res.status(400).send('ID unknown : ' + req.body.idFriend)
 
     try{
         //remove to friend list
         await UserModel.findByIdAndUpdate(
-            req.params.id,
-            { $pull: { friend: req.body.idUnToFriend}},
+            req.body.idFriend,
+            { $pull: { friend: req.body.myId}},
             {new: true, upsert: true},
             (err,docs) => {
                 if (!err) res.status(201).json(docs);
@@ -113,9 +147,9 @@ module.exports.unfriend = async (req,res) => {
             }
         );
         
-        await UserModel.findByIdAndUpdate(
-            req.body.idToUnFriend,
-            { $pull: { friend: req.params.id }},
+         UserModel.findByIdAndUpdate(
+            req.body.myId,
+            { $pull: { friend: req.body.idFriend }},
             {new: true, upsert: true},
             (err,docs) => {
                 if (err) {return res.status(400).json(err)};
@@ -130,7 +164,6 @@ module.exports.unfriend = async (req,res) => {
 };
 
 module.exports.friendsList= async (req,res) => {
-    console.log("Je suis dans friendsList !! " + req.params.id);
     if (!ObjectID.isValid(req.params.id))
     {
         return res.status(400).send('ID unknown : ' + req.params.id);

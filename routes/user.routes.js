@@ -6,9 +6,10 @@ const userController = require('../controllers/user.controller');
 
 //auth
 router.post("/", authController.signUp);
-router.post("/:signIn", authController.signIn);
+router.post("/signin", authController.signIn);
 router.get("/logout", authController.logout);
 router.get("/isLog", authController.isLog);
+router.get("/jwtid/:id", authController.requireAuth);
 
 
 
@@ -17,11 +18,12 @@ router.get("/isLog", authController.isLog);
 router.get("/:id", userController.userInfo);
 router.get("/infos/:id", userController.userInfo);
 router.get("/", userController.getAllUsers);
+router.get("/disctinct/:id", userController.getAllUsersDistinct);
 router.get("/myFriends/:id", userController.friendsList);
 router.put("/:id", userController.udapteUser);
 router.delete("/:id", userController.deleteUser);
-router.patch("friend/:id", userController.friend);
-router.patch("unfriend/:id", userController.unfriend);
+router.patch("/friend", userController.Addfriend);
+router.patch("/unfriend", userController.unfriend);
 
 
 
