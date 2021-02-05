@@ -2,8 +2,11 @@ const PostModel = require('../models/post.model');
 const postModel = require('../models/post.model');
 const UserModel = require('../models/user.model');
 const ObjectID = require('mongoose').Types.ObjectId;
+const verify = require('./verifyToken.controller');
+
 
 module.exports.readPost =  (req, res, next) =>{
+    console.log( "dans le readPost");
       PostModel.find((err,docs) => {
         if (!err)  res.send(docs);
         else console.log('Error to get data : ' + err);
@@ -25,6 +28,8 @@ module.exports.getOnePost = (req, res) =>{
 }
 
 module.exports.createPost = async (req, res) =>{
+
+    console.log(req.headers['x-access-token'] + " token à gérer");
 
         const newPost = new PostModel({
             posterId: req.body.posterId,
@@ -85,52 +90,56 @@ module.exports.likePost = async (req, res, next) =>
 {
 
     console.log(" Je suis dans Like !! ");
-
-    console.log(req.body.id +  " idRess");
-    console.log(req.body.idUsr + " idUsr");
-    console.log(req.body + " body");
+    console.log(req._id + " iduser à traiter ");
+    console.log(req.body.id);
 
 
     try{
         const usr = new UserModel();
-        console.log(req.body);
 
-        await UserModel.findById({_id : req.body.idUsr},
+        await UserModel.findById({_id : req._id},
             (err, usr) =>
             {
-               if(!err) this.usr = usr, console.log(this.usr)
-               else return console.log(err), res.status(404).send(err);
+               if(!err) 
+               {
+                   this.usr = usr, console.log(this.usr)
+               }
+               else 
+               {
+                return console.log(err + " utilisateur non retrouvé "), res.status(404).send("j'ai pas mon utilisateur");
+               }
+               
             })
 
-        await PostModel.findByIdAndUpdate(
-            req.body.id,
-            {
-                $addToSet: { likers: 
-                    { _id :this.usr._id,
-                    pseudo : this.usr.pseudo,
-                    email : this.usr.email} },
-            },
-            { new: true },
-            (err, docs) => {
-                if (err) return res.status(400).send(err);
-            }
-        );
-         await UserModel.findByIdAndUpdate(
+        await UserModel.findByIdAndUpdate(
             this.usr._id,
             {
                 $addToSet: { likes : req.body.id },
             },
             { new: true },
             (err, docs) => {
-                if (!err) res.status(200).send(docs);
-                else return res.status(400).send(err);
+                if (err) return console.log(err + " utilisateur non modifié "), res.status(400).send(err);
+            }
+        );
+
+         PostModel.findByIdAndUpdate(
+            req.body.id,
+            {
+                $addToSet: { likers: 
+                    { _id : req._id,
+                    pseudo : this.usr.pseudo,
+                    email : this.usr.email} },
+            },
+            { new: true },
+            (err, docs) => {
+                if (err) console.log("j'ai une erreur sur le postModel Like" + err), res.status(400).send(err);
+                else  res.status(200).send(docs);
             }
         );
     }
     catch (err) {
         return res.status(400).send(err);
     }
-    next();
 };
 
 module.exports.unlikePost = async (req,res) =>{
@@ -168,8 +177,6 @@ module.exports.unlikePost = async (req,res) =>{
 //Commentaires
 
 module.exports.commentPost = async (req,res) => {
-    console.log(req.body.posterId + " dans comment + user");
-
 
      if (!ObjectID.isValid(req.body.idress))
      {
@@ -181,10 +188,14 @@ module.exports.commentPost = async (req,res) => {
             req.body.idress,
             {
                 $push: {
-                    comments: { 
-                        commenterId: req.body.posterId,
-                        commenterPseudo: req.body.posterName,
+                    comments : 
+                    {
+                        commenterId: res.locals._id,
+                        commenterPseudo: res.locals.pseudo,
                         text: req.body.message,
+                        answerId :"",
+                        answerPseudo : "",
+                        answertext : "",
                         timesTamp: new Date().getTime(),
                     }    
                 },
@@ -257,6 +268,7 @@ module.exports.deleteCommentPost = (req, res) => {
 };
 
 module.exports.getAllCommentsById = (req, res) => {
+
     if (!ObjectID.isValid(req.params.id))
     {
         return res.status(400).send("ID unknown : " + req.params.id);
@@ -296,7 +308,45 @@ module.exports.getRessourcesByLikes= async (req, res) => {
             return res.status(404).send(err);
         })
 
+}
 
+module.exports.answerPost = async (req,res) => {
+    console.log(res.locals._id + " idUser");
+    console.log(req.body);
+
+     if (!ObjectID.isValid(req.body.idPost))
+     {
+         return res.status(400).send("ID unknown : " + req.body.idPost);
+     }
+
+    try {
+        PostModel.findByIdAndUpdate(
+            req.body.idPost,
+            {
+                $push: {
+                    comments: { 
+                        answerId : req.body.idAnswer,
+                        answerPseudo : req.body.pseudo,
+                        answertext : req.body.message,
+                        timesTamp: new Date().getTime(),
+                    }    
+                },
+            },
+            { new: true },
+            (err, docs) => {
+                if (!err) 
+                {
+                    return res.status(200).json(docs);
+ 
+                }
+                    
+                else return res.status(400).send(err);
+            },
+        );   
+    }
+    catch (err) {
+        return res.status(400).send(err);
+    }
 }
 
 

@@ -33,14 +33,18 @@ const PostSchema = mongoose.Schema(
             required: true,
         },
         comments: {
-            type : [
+            type : 
+            [
                 {
                     commenterId : String,
                     commenterPseudo : String,
                     text : String,
-                }
-
-        ]},
+                    answerId : String,
+                    answerPseudo : String,
+                    answertext : String,
+                },
+            ],
+        },
         relation : { 
             type :
              [

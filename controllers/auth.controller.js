@@ -14,6 +14,7 @@ const maxAge = 3 * 24 * 60 * 60 * 1000;
  };
 
 
+
 // const createToken = (id) => 
 // { 
 //     return jwt.sign({id}, RSA_PRIVATE_KEY, 
@@ -39,18 +40,23 @@ module.exports.signUp = async (req,res) => {
 }
 
 module.exports.signIn = async (req, res) => {
-    console.log("je suis dans signIn ");
+
+    console.log("dans signIn ???");
+    console.log(req.body);
     const email = req.body.email;
     const password = req.body.password;
     try {
        const user = await UserModel.login(email, password);
-       console.log(user._id + " idRecup pour créer token");
+       console.log(user);
+
        const token = createToken(user._id);
-       console.log(" user trouvé : token créé " + token );
-       res.cookie('jwt', token, { httpOnly: true, secure:true });
-       res.status(200).json({ idToken : token,
-                            expiresIn : maxAge });
-       console.log(user._id + " sortie de signIn");
+       console.log(token + " a envoyer pour l'utilisateur");
+       res.cookie('jwt', token, { httpOnly: true, maxAge });
+
+       res.status(201).json({ idToken : token,
+                              expiresIn : maxAge,
+                              pseudo : user.pseudo});
+
     }
     catch (err){
         const errors = signInErrors(err);
@@ -59,7 +65,7 @@ module.exports.signIn = async (req, res) => {
       }
 }
 
-module.exports.requireAuth = (req, res) => {
+module.exports.requireAuth = (req, res, next) => {
     console.log(req.params._id + " _id");
     console.log(req.params.id + " id");
     console.log(req.body);
@@ -72,16 +78,22 @@ module.exports.requireAuth = (req, res) => {
             }
             else {
                 console.log(decodedToken.id + " token");
-                res.status(201).json(decodedToken.id);
                 
-
+                await UserModel.findOne({_id : decodedToken.id} (err, docs =>
+                    {
+                        if(err)res.status(404).send(err)
+                        else reset.status(201).send(docs)
+                    }))
             }
         });
     }
     else{
         console.log('Pas de token');
     }
+    next();
 }
+
+
 
 module.exports.logout = (req,res) => {
     res.cookie('jwt', '', { maxAge: 1 });

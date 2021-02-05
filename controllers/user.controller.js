@@ -7,6 +7,23 @@ module.exports.getAllUsers = async (req, res) => {
     res.status(200).json(users);
 };
 
+module.exports.getOneUser = (req, res) =>
+{
+    console.log( " dans getOneUser !! !!! !" );
+    console.log(req.params._id + " id");
+    if (!ObjectID.isValid(req.params._id) )
+    {
+        return res.status(400).send('ID unknown : ' + req.params._id)
+    }
+
+    const user =  UserModel.findOne({_id : req.params._id}, (err, docs) =>
+    {
+        if(!err) res.status(201).send(docs)
+        else res.status(404).send(err)
+    })
+
+}
+
 module.exports.getAllUsersDistinct = async (req, res) => {
 
     console.log( " DANS LE DISCTINCT");
@@ -18,7 +35,7 @@ module.exports.getAllUsersDistinct = async (req, res) => {
     }
     //> db.demo1.find({$nor:[{$and:[{'StudentName':'David'},{'StudentMarks':78}]}]});
     try {
-        const users = await UserModel.find({friend :{$not : req.params.id}}, (err, docs) =>
+        const users = await UserModel.find({friend : {$ne :req.params.id}}, (err, docs) =>
         {
             if(!err)res.status(200).json(users);
             else res.status(400).send();
@@ -32,14 +49,15 @@ module.exports.getAllUsersDistinct = async (req, res) => {
     
 };
 
-//trouver un seul utilisateur
-module.exports.userInfo = async (req,res) => {
+//trouver l'utilisateur connecté
+module.exports.currentUserInfo = async (req,res) => {
+    console.log(res.locals._id + " id retour requireAuth");
 
-    if (!ObjectID.isValid(req.params.id))
+    if (!ObjectID.isValid(res.locals._id))
     {
-        return res.status(400).send('ID unknown : ' + req.params.id)
+        return res.status(400).send('ID unknown : ' + res.locals._id)
     }
-    UserModel.findById(req.params.id, (err, docs) => {
+    UserModel.findById(res.locals._id, (err, docs) => {
         if (!err) res.send(docs);
         else console.log('ID unknown : ' + err);
     }).select('-password');
@@ -92,16 +110,17 @@ module.exports.deleteUser = async(req,res) => {
 module.exports.Addfriend = async (req,res) => {
 
     console.log( "dns friend");
-    console.log(req.body);
+    console.log(req.body.idFriend);
+    console.log(res.locals._id + " idUser session");
 
-    if (!ObjectID.isValid(req.body.idFriend) || !ObjectID.isValid(req.body.myId))
+    if (!ObjectID.isValid(req.body.idFriend) || !ObjectID.isValid(res.locals._id))
 
-        return res.status(400).send('ID unknown : ' + req.params.id);
+        return res.status(400).send('ID unknown : ' + req.body.idFriend);
 
     try{
         //ajouter a la liste d'ami
         await UserModel.findByIdAndUpdate(
-            req.body.myId,
+            res.locals._id,
             { $addToSet: { friend: req.body.idFriend }},
             { new: true, upsert: true },
             (err,docs) => {
@@ -111,7 +130,7 @@ module.exports.Addfriend = async (req,res) => {
         );
          UserModel.findByIdAndUpdate(
             req.body.idFriend,
-            { $addToSet: {friend: req.body.myId }},
+            { $addToSet: {friend: res.locals._id }},
             { new: true, upsert: true },
             (err,docs) => {
                 if (err) return res.status(400).json(err);
@@ -129,9 +148,12 @@ module.exports.Addfriend = async (req,res) => {
 module.exports.unfriend = async (req,res) => {
 
     console.log( "dns unFriend");
+    console.log(req.body.idFriend);
+    console.log(req.body + " body");
+    console.log(res.locals._id +" idUser session");
     if (
         !ObjectID.isValid(req.body.idFriend) ||
-        !ObjectID.isValid(req.body.myId)
+        !ObjectID.isValid(res.locals._id)
         )
         return res.status(400).send('ID unknown : ' + req.body.idFriend)
 
@@ -139,7 +161,7 @@ module.exports.unfriend = async (req,res) => {
         //remove to friend list
         await UserModel.findByIdAndUpdate(
             req.body.idFriend,
-            { $pull: { friend: req.body.myId}},
+            { $pull: { friend: res.locals._id}},
             {new: true, upsert: true},
             (err,docs) => {
                 if (!err) res.status(201).json(docs);
@@ -148,7 +170,7 @@ module.exports.unfriend = async (req,res) => {
         );
         
          UserModel.findByIdAndUpdate(
-            req.body.myId,
+            res.locals._id,
             { $pull: { friend: req.body.idFriend }},
             {new: true, upsert: true},
             (err,docs) => {
@@ -163,18 +185,18 @@ module.exports.unfriend = async (req,res) => {
     }
 };
 
-module.exports.friendsList= async (req,res) => {
-    if (!ObjectID.isValid(req.params.id))
+module.exports.friendsList=  (req,res, next) => {
+
+    if (!ObjectID.isValid(res.locals._id))
     {
-        return res.status(400).send('ID unknown : ' + req.params.id);
+        return res.status(400).send('ID unknown : ' + res.locals._id);
     }
   
-    UserModel.findOne({id: req.params.id},
+    UserModel.findById(res.locals._id,
         (err,docs) => {
             if (!err)
             {
-                console.log(" j'ai récupéré mon utilisateur");
-                UserModel.find({friend : { $eq :  req.params.id }},
+                UserModel.find({friend : { $eq :  res.locals.id }},
                 (err,docs) => {
                     if (!err) res.status(201).json(docs);
                     else return res.status(400).json(err);
@@ -182,7 +204,6 @@ module.exports.friendsList= async (req,res) => {
             }
             else 
             {
-                console.log(err + " je n'ai pas récupéré mon utilisateur");
                 return res.status(400).json(err);
             }
         });
