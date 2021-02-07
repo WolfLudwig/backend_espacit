@@ -15,9 +15,9 @@ router.post('/verify-email', verifyEmailSchema, verifyEmail);
 router.post('/forgot-password', forgotPasswordSchema, forgotPassword);
 router.post('/validate-reset-token', validateResetTokenSchema, validateResetToken);
 router.post('/reset-password', resetPasswordSchema, resetPassword);
-router.get('/', authorize(Role.Admin), getAll);
+router.get('/', authorize(Role.SuperAdmin), getAll);
 router.get('/:id', authorize(), getById);
-router.post('/', authorize(Role.Admin), createSchema, create);
+router.post('/', authorize(Role.SuperAdmin), createSchema, create);
 router.put('/:id', authorize(), updateSchema, update);
 router.delete('/:id', authorize(), _delete);
 
@@ -67,8 +67,8 @@ function revokeToken(req, res, next) {
 
     if (!token) return res.status(400).json({ message: 'Token is required' });
 
-    // users can revoke their own tokens and admins can revoke any tokens
-    if (!req.user.ownsToken(token) && req.user.role !== Role.Admin) {
+    // users can revoke their own tokens and SuperAdmins can revoke any tokens
+    if (!req.user.ownsToken(token) && req.user.role !== Role.SuperAdmin) {
         return res.status(401).json({ message: 'Unauthorized' });
     }
 
@@ -80,6 +80,7 @@ function revokeToken(req, res, next) {
 function registerSchema(req, res, next) {
     const schema = Joi.object({
         title: Joi.string().required(),
+        pseudo: Joi.string().required(),
         firstName: Joi.string().required(),
         lastName: Joi.string().required(),
         email: Joi.string().email().required(),
@@ -157,8 +158,8 @@ function getAll(req, res, next) {
 }
 
 function getById(req, res, next) {
-    // users can get their own account and admins can get any account
-    if (req.params.id !== req.user.id && req.user.role !== Role.Admin) {
+    // les utilisateurs peuvent obtenir leur propre compte et les super-administrateurs peuvent obtenir n'importe quel compte
+    if (req.params.id !== req.user.id && req.user.role !== Role.SuperAdmin) {
         return res.status(401).json({ message: 'Unauthorized' });
     }
 
@@ -170,12 +171,13 @@ function getById(req, res, next) {
 function createSchema(req, res, next) {
     const schema = Joi.object({
         title: Joi.string().required(),
+        pseudo: Joi.string().required(),
         firstName: Joi.string().required(),
         lastName: Joi.string().required(),
         email: Joi.string().email().required(),
         password: Joi.string().min(6).required(),
         confirmPassword: Joi.string().valid(Joi.ref('password')).required(),
-        role: Joi.string().valid(Role.Admin, Role.User).required()
+        role: Joi.string().valid(Role.SuperAdmin, Role.User).required()
     });
     validateRequest(req, next, schema);
 }
@@ -189,16 +191,20 @@ function create(req, res, next) {
 function updateSchema(req, res, next) {
     const schemaRules = {
         title: Joi.string().empty(''),
+        pseudo: Joi.string().empty(''),
         firstName: Joi.string().empty(''),
         lastName: Joi.string().empty(''),
+        adress: Joi.string().empty(''),
+        city: Joi.string().empty(''),
+        zipCode: Joi.number().empty(''),
         email: Joi.string().email().empty(''),
         password: Joi.string().min(6).empty(''),
         confirmPassword: Joi.string().valid(Joi.ref('password')).empty('')
     };
 
-    // only admins can update role
-    if (req.user.role === Role.Admin) {
-        schemaRules.role = Joi.string().valid(Role.Admin, Role.User).empty('');
+    // only SuperAdmins can update role
+    if (req.user.role === Role.SuperAdmin) {
+        schemaRules.role = Joi.string().valid(Role.SuperAdmin, Role.User, Role.Admin, Role.Moderator).empty('');
     }
 
     const schema = Joi.object(schemaRules).with('password', 'confirmPassword');
@@ -206,8 +212,8 @@ function updateSchema(req, res, next) {
 }
 
 function update(req, res, next) {
-    // users can update their own account and admins can update any account
-    if (req.params.id !== req.user.id && req.user.role !== Role.Admin) {
+    // users can update their own account and SuperAdmins can update any account
+    if (req.params.id !== req.user.id && req.user.role !== Role.SuperAdmin) {
         return res.status(401).json({ message: 'Unauthorized' });
     }
 
@@ -217,8 +223,8 @@ function update(req, res, next) {
 }
 
 function _delete(req, res, next) {
-    // users can delete their own account and admins can delete any account
-    if (req.params.id !== req.user.id && req.user.role !== Role.Admin) {
+    // users can delete their own account and SuperAdmins can delete any account
+    if (req.params.id !== req.user.id && req.user.role !== Role.SuperAdmin) {
         return res.status(401).json({ message: 'Unauthorized' });
     }
 
