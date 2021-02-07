@@ -1,0 +1,13 @@
+﻿{
+    "connectionString": "mongodb+srv://Admin_1:theBoys123@cluster0.pqby2.mongodb.net/Cluster0?retryWrites=true&w=majority",
+    "secret": "ldfdlffgl,gf:l,vc:,cmslsmd,flmdmq,;,qsdml,dmsv,cv,c,vlfdb,gf:,sqd,slqdmqd,sqlmd,qclm,C?MM",
+    "emailFrom": "info@ressource-relationnelle.com",
+    "smtpOptions": {
+        "host": "smtp.ethereal.email",
+        "port": 587,
+        "auth": {
+            "user": "lempi.beer72@ethereal.email",
+            "pass": "gF7YMPHq7kvedxtsAQ"
+        }
+    }
+}

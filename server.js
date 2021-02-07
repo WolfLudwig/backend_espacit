@@ -1,86 +1,37 @@
-const express = require("express");
-const bodyParser = require("body-parser");
-const cors = require("cors");
-const dbConfig = require("./app/config/db.config");
-
+﻿require('rootpath')();
+const express = require('express');
 const app = express();
+const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
+const cors = require('cors');
+const errorHandler = require('_middleware/error-handler');
 
-var corsOptions = {
-  origin: "http://localhost:8081"
-};
 
-app.use(cors(corsOptions));
 
-// analyser les requêtes de type de contenu - application / json
+
+app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+app.use(cookieParser());
 
-// analyser les requêtes de type de contenu - application / x-www-form-urlencoded
-app.use(bodyParser.urlencoded({ extended: true }));
+// autoriser les demandes de cors de n'importe quelle origine et avec des informations d'identification
+app.use(cors({ origin: (origin, callback) => callback(null, true), credentials: true }));
 
-const db = require("./app/models");
-const Role = db.role;
+// api routes
+app.use('/accounts', require('./accounts/accounts.controller'));
+app.use('/api/post', require('./routes/post.routes'));
+app.use('/api/relation',require('./routes/relation.routes'));
+app.use('/api/category', require('./routes/categoy.routes'));
+app.use('/api/ressourceType', require('./routes/ressourceType.routes'));
+app.use('/api/comment', require('./routes/comment.routes'));
 
-db.mongoose
-  .connect('mongodb+srv://Admin_1:theBoys123@cluster0.pqby2.mongodb.net/Cluster0?retryWrites=true&w=majority', {
-  useNewUrlParser: true,
-    useUnifiedTopology: true
-  })
-  .then(() => {
-    console.log("Successfully connect to MongoDB.");
-    initial();
-  })
-  .catch(err => {
-    console.error("Connection error", err);
-    process.exit();
-  });
+// swagger docs route
+app.use('/api-docs', require('_helpers/swagger'));
 
-// simple route
-app.get("/", (req, res) => {
-  res.json({ message: "Welcome to bezkoder application." });
+// global error handler
+app.use(errorHandler);
+
+// start server
+const port = process.env.NODE_ENV === 'production' ? (process.env.PORT || 80) : 4000;
+app.listen(port, () => {
+    console.log('Server listening on port ' + port);
 });
-
-// routes
-require("./app/routes/auth.routes")(app);
-require("./app/routes/user.routes")(app);
-
-// set port, listen for requests
-const PORT = process.env.PORT || 8080;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}.`);
-});
-
-function initial() {
-  Role.estimatedDocumentCount((err, count) => {
-    if (!err && count === 0) {
-      new Role({
-        name: "user"
-      }).save(err => {
-        if (err) {
-          console.log("error", err);
-        }
-
-        console.log("added 'user' to roles collection");
-      });
-
-      new Role({
-        name: "moderator"
-      }).save(err => {
-        if (err) {
-          console.log("error", err);
-        }
-
-        console.log("added 'moderator' to roles collection");
-      });
-
-      new Role({
-        name: "admin"
-      }).save(err => {
-        if (err) {
-          console.log("error", err);
-        }
-
-        console.log("added 'admin' to roles collection");
-      });
-    }
-  });
-}
