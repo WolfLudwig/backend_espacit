@@ -39,7 +39,7 @@ schema.set('toJSON', {
     virtuals: true,
     versionKey: false,
     transform: function (doc, ret) {
-        // remove these props when object is serialized
+        // supprimer ces accessoires lorsque l'objet est sérialisé
         delete ret._id;
         delete ret.passwordHash;
     }

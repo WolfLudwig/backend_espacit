@@ -61,13 +61,13 @@ function revokeTokenSchema(req, res, next) {
 }
 
 function revokeToken(req, res, next) {
-    // accept token from request body or cookie
+    // accepter le jeton du corps de la requête ou du cookie
     const token = req.body.token || req.cookies.refreshToken;
     const ipAddress = req.ip;
 
     if (!token) return res.status(400).json({ message: 'Token is required' });
 
-    // users can revoke their own tokens and SuperAdmins can revoke any tokens
+    // les utilisateurs peuvent révoquer leurs propres jetons et les super-administrateurs peuvent révoquer tous les jetons
     if (!req.user.ownsToken(token) && req.user.role !== Role.SuperAdmin) {
         return res.status(401).json({ message: 'Unauthorized' });
     }
@@ -202,7 +202,7 @@ function updateSchema(req, res, next) {
         confirmPassword: Joi.string().valid(Joi.ref('password')).empty('')
     };
 
-    // only SuperAdmins can update role
+    // seuls les super-administrateurs peuvent mettre à jour le rôle
     if (req.user.role === Role.SuperAdmin) {
         schemaRules.role = Joi.string().valid(Role.SuperAdmin, Role.User, Role.Admin, Role.Moderator).empty('');
     }
@@ -212,7 +212,7 @@ function updateSchema(req, res, next) {
 }
 
 function update(req, res, next) {
-    // users can update their own account and SuperAdmins can update any account
+    // les utilisateurs peuvent mettre à jour leur propre compte et les super-administrateurs peuvent mettre à jour n'importe quel compte
     if (req.params.id !== req.user.id && req.user.role !== Role.SuperAdmin) {
         return res.status(401).json({ message: 'Unauthorized' });
     }
@@ -223,7 +223,7 @@ function update(req, res, next) {
 }
 
 function _delete(req, res, next) {
-    // users can delete their own account and SuperAdmins can delete any account
+    // les utilisateurs peuvent supprimer leur propre compte et les super-administrateurs peuvent supprimer n'importe quel compte
     if (req.params.id !== req.user.id && req.user.role !== Role.SuperAdmin) {
         return res.status(401).json({ message: 'Unauthorized' });
     }
@@ -233,10 +233,10 @@ function _delete(req, res, next) {
         .catch(next);
 }
 
-// helper functions
+// fonctions d'assistance
 
 function setTokenCookie(res, token) {
-    // create cookie with refresh token that expires in 7 days
+    // créer un cookie avec un jeton d'actualisation qui expire dans 7 jours
     const cookieOptions = {
         httpOnly: true,
         expires: new Date(Date.now() + 7*24*60*60*1000)

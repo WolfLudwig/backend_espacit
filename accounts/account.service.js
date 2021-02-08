@@ -29,14 +29,14 @@ async function authenticate({ email, password, ipAddress }) {
         throw 'Email or password is incorrect';
     }
 
-    // authentication successful so generate jwt and refresh tokens
+    // authentification réussie, alors générez jwt et actualisez les jetons
     const jwtToken = generateJwtToken(account);
     const refreshToken = generateRefreshToken(account, ipAddress);
 
-    // save refresh token
+    // enregistrer le jeton d'actualisation
     await refreshToken.save();
 
-    // return basic details and tokens
+    // retourner les détails de base et les jetons
     return {
         ...basicDetails(account),
         jwtToken,
@@ -48,7 +48,7 @@ async function refreshToken({ token, ipAddress }) {
     const refreshToken = await getRefreshToken(token);
     const { account } = refreshToken;
 
-    // replace old refresh token with a new one and save
+    // remplacer l'ancien jeton d'actualisation par un nouveau et enregistrer
     const newRefreshToken = generateRefreshToken(account, ipAddress);
     refreshToken.revoked = Date.now();
     refreshToken.revokedByIp = ipAddress;
@@ -56,10 +56,10 @@ async function refreshToken({ token, ipAddress }) {
     await refreshToken.save();
     await newRefreshToken.save();
 
-    // generate new jwt
+    // générer un nouveau jwt
     const jwtToken = generateJwtToken(account);
 
-    // return basic details and tokens
+    // retourner les détails de base et les jetons
     return {
         ...basicDetails(account),
         jwtToken,
@@ -70,34 +70,34 @@ async function refreshToken({ token, ipAddress }) {
 async function revokeToken({ token, ipAddress }) {
     const refreshToken = await getRefreshToken(token);
 
-    // revoke token and save
+    // révoquer le jeton et enregistrer
     refreshToken.revoked = Date.now();
     refreshToken.revokedByIp = ipAddress;
     await refreshToken.save();
 }
 
 async function register(params, origin) {
-    // validate
+    // valider
     if (await db.Account.findOne({ email: params.email })) {
-        // send already registered error in email to prevent account enumeration
+        // envoyer une erreur déjà enregistrée dans l'e-mail pour empêcher l'énumération du compte
         return await sendAlreadyRegisteredEmail(params.email, origin);
     }
 
-    // create account object
+    // créer un objet de compte
     const account = new db.Account(params);
 
-    // first registered account is an admin
+    // le premier compte enregistré est un administrateur
     const isFirstAccount = (await db.Account.countDocuments({})) === 0;
     account.role = isFirstAccount ? Role.Admin : Role.User;
     account.verificationToken = randomTokenString();
 
-    // hash password
+    // mot de passe de hachage
     account.passwordHash = hash(params.password);
 
-    // save account
+    // enregistrer le compte
     await account.save();
 
-    // send email
+    // envoyer un e-mail
     await sendVerificationEmail(account, origin);
 }
 
@@ -114,17 +114,17 @@ async function verifyEmail({ token }) {
 async function forgotPassword({ email }, origin) {
     const account = await db.Account.findOne({ email });
 
-    // always return ok response to prevent email enumeration
+    // renvoie toujours une réponse correcte pour empêcher l'énumération des e-mails
     if (!account) return;
 
-    // create reset token that expires after 24 hours
+    // créer un jeton de réinitialisation qui expire après 24 heures
     account.resetToken = {
         token: randomTokenString(),
         expires: new Date(Date.now() + 24*60*60*1000)
     };
     await account.save();
 
-    // send email
+    // envoyer un e-mail
     await sendPasswordResetEmail(account, origin);
 }
 
@@ -145,7 +145,7 @@ async function resetPassword({ token, password }) {
 
     if (!account) throw 'Invalid token';
 
-    // update password and remove reset token
+    // mettre à jour le mot de passe et supprimer le jeton de réinitialisation
     account.passwordHash = hash(password);
     account.passwordReset = Date.now();
     account.resetToken = undefined;
@@ -163,7 +163,7 @@ async function getById(id) {
 }
 
 async function create(params) {
-    // validate
+    // Valider
     if (await db.Account.findOne({ email: params.email })) {
         throw 'Email "' + params.email + '" is already registered';
     }
@@ -171,10 +171,10 @@ async function create(params) {
     const account = new db.Account(params);
     account.verified = Date.now();
 
-    // hash password
+    // mot de passe de hachage
     account.passwordHash = hash(params.password);
 
-    // save account
+    // enregistrer le compte
     await account.save();
 
     return basicDetails(account);
@@ -183,17 +183,17 @@ async function create(params) {
 async function update(id, params) {
     const account = await getAccount(id);
 
-    // validate (if email was changed)
+    // valider (si l'email a été changé)
     if (params.email && account.email !== params.email && await db.Account.findOne({ email: params.email })) {
         throw 'Email "' + params.email + '" is already taken';
     }
 
-    // hash password if it was entered
+    //  hachage du mot de passe s'il a été saisi
     if (params.password) {
         params.passwordHash = hash(params.password);
     }
 
-    // copy params to account and save
+    // copier les paramètres sur le compte et enregistrer
     Object.assign(account, params);
     account.updated = Date.now();
     await account.save();
@@ -206,7 +206,7 @@ async function _delete(id) {
     await account.remove();
 }
 
-// helper functions
+// fonctions d'assistance
 
 async function getAccount(id) {
     if (!db.isValidId(id)) throw 'Account not found';
@@ -226,12 +226,12 @@ function hash(password) {
 }
 
 function generateJwtToken(account) {
-    // create a jwt token containing the account id that expires in 15 minutes
+    // créer un jeton jwt contenant l'ID de compte qui expire après 15 minutes
     return jwt.sign({ sub: account.id, id: account.id }, config.secret, { expiresIn: '15m' });
 }
 
 function generateRefreshToken(account, ipAddress) {
-    // create a refresh token that expires in 7 days
+    // créer un jeton d'actualisation qui expire dans 7 jours
     return new db.RefreshToken({
         account: account.id,
         token: randomTokenString(),
@@ -253,7 +253,7 @@ async function sendVerificationEmail(account, origin) {
     let message;
     if (origin) {
         const verifyUrl = `${origin}/account/verify-email?token=${account.verificationToken}`;
-        message = `<p>Please click the below link to verify your email address:</p>
+        message = `<p>Veuillez cliquer sur le lien ci-dessous pour vérifier votre adresse e-mail:</p>
                    <p><a href="${verifyUrl}">${verifyUrl}</a></p>`;
     } else {
         message = `<p>Please use the below token to verify your email address with the <code>/account/verify-email</code> api route:</p>
@@ -264,7 +264,7 @@ async function sendVerificationEmail(account, origin) {
         to: account.email,
         subject: 'Sign-up Verification API - Verify Email',
         html: `<h4>Verify Email</h4>
-               <p>Thanks for registering!</p>
+               <p>Merci de vous être inscrit!</p>
                ${message}`
     });
 }

@@ -5,27 +5,27 @@ const db = require('_helpers/db');
 module.exports = authorize;
 
 function authorize(roles = []) {
-    // roles param can be a single role string (e.g. Role.User or 'User') 
-    // or an array of roles (e.g. [Role.Admin, Role.User] or ['Admin', 'User'])
+    // Le paramètre de rôles peut être une chaîne de rôle unique (par exemple, Role.User ou 'User')
+    // ou un tableau de rôles (par exemple [Role.Admin, Role.User] ou ['Admin', 'User'])
     if (typeof roles === 'string') {
         roles = [roles];
     }
 
     return [
-        // authenticate JWT token and attach user to request object (req.user)
+        // authentifier le jeton JWT et attacher l'utilisateur à l'objet de requête (req.user)
         jwt({ secret, algorithms: ['HS256'] }),
 
-        // authorize based on user role
+        // autoriser en fonction du rôle de l'utilisateur
         async (req, res, next) => {
             const account = await db.Account.findById(req.user.id);
             const refreshTokens = await db.RefreshToken.find({ account: account.id });
 
             if (!account || (roles.length && !roles.includes(account.role))) {
-                // account no longer exists or role not authorized
+                // le compte n'existe plus ou le rôle n'est pas autorisé
                 return res.status(401).json({ message: 'Unauthorized' });
             }
 
-            // authentication and authorization successful
+            // authentification et autorisation réussies
             req.user.role = account.role;
             req.user.ownsToken = token => !!refreshTokens.find(x => x.token === token);
             next();
