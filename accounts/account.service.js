@@ -28,7 +28,7 @@ async function authenticate({ email, password, ipAddress }) {
     if (!account || !account.isVerified || !bcrypt.compareSync(password, account.passwordHash)) {
         throw 'Email or password is incorrect';
     }
-
+    
     // authentification réussie, alors générez jwt et actualisez les jetons
     const jwtToken = generateJwtToken(account);
     const refreshToken = generateRefreshToken(account, ipAddress);
@@ -89,6 +89,7 @@ async function register(params, origin) {
     // le premier compte enregistré est un administrateur
     const isFirstAccount = (await db.Account.countDocuments({})) === 0;
     account.role = isFirstAccount ? Role.Admin : Role.User;
+    account.status = true;
     account.verificationToken = randomTokenString();
 
     // mot de passe de hachage
@@ -245,8 +246,8 @@ function randomTokenString() {
 }
 
 function basicDetails(account) {
-    const { id, title, pseudo, firstName, lastName, email, role, adress, city, zipCode, created, updated, isVerified } = account;
-    return { id, title, pseudo, firstName, lastName, email, role, adress, city, zipCode, created, updated, isVerified };
+    const { id, title, pseudo, firstName, lastName, email, role, status, adress, city, zipCode, created, updated, isVerified } = account;
+    return { id, title, pseudo, firstName, lastName, email, role, status, adress, city, zipCode, created, updated, isVerified };
 }
 
 async function sendVerificationEmail(account, origin) {

@@ -16,9 +16,12 @@ router.post('/forgot-password', forgotPasswordSchema, forgotPassword);
 router.post('/validate-reset-token', validateResetTokenSchema, validateResetToken);
 router.post('/reset-password', resetPasswordSchema, resetPassword);
 router.get('/', authorize(Role.SuperAdmin), getAll);
+router.get('/admin', authorize(Role.Admin), getAllByAdmin);
 router.get('/:id', authorize(), getById);
+router.get('/admin/:id', authorize(), getOneUser);
 router.post('/', authorize(Role.SuperAdmin), createSchema, create);
 router.put('/:id', authorize(), updateSchema, update);
+router.put('/admin/:id', authorize(), updateSchema, edit);
 router.delete('/:id', authorize(), _delete);
 
 module.exports = router;
@@ -156,10 +159,25 @@ function getAll(req, res, next) {
         .then(accounts => res.json(accounts))
         .catch(next);
 }
+function getAllByAdmin(req, res, next) {
+    accountService.getAll()
+        .then(accounts => res.json(accounts))
+        .catch(next);
+}
 
 function getById(req, res, next) {
     // les utilisateurs peuvent obtenir leur propre compte et les super-administrateurs peuvent obtenir n'importe quel compte
     if (req.params.id !== req.user.id && req.user.role !== Role.SuperAdmin) {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    accountService.getById(req.params.id)
+        .then(account => account ? res.json(account) : res.sendStatus(404))
+        .catch(next);
+}
+
+function getOneUser(req, res, next) {
+    if (req.params.id !== req.user.id && req.user.role !== Role.Admin) {
         return res.status(401).json({ message: 'Unauthorized' });
     }
 
@@ -177,7 +195,7 @@ function createSchema(req, res, next) {
         email: Joi.string().email().required(),
         password: Joi.string().min(6).required(),
         confirmPassword: Joi.string().valid(Joi.ref('password')).required(),
-        role: Joi.string().valid(Role.SuperAdmin, Role.User).required()
+        role: Joi.string().valid(Role.SuperAdmin, Role.User, Role.Admin, Role.Moderator).required()
     });
     validateRequest(req, next, schema);
 }
@@ -207,6 +225,10 @@ function updateSchema(req, res, next) {
         schemaRules.role = Joi.string().valid(Role.SuperAdmin, Role.User, Role.Admin, Role.Moderator).empty('');
     }
 
+    if (req.user.role === Role.Admin) {
+        schemaRules.status = Joi.boolean().valid(true, false).empty('');
+    }
+
     const schema = Joi.object(schemaRules).with('password', 'confirmPassword');
     validateRequest(req, next, schema);
 }
@@ -214,6 +236,16 @@ function updateSchema(req, res, next) {
 function update(req, res, next) {
     // les utilisateurs peuvent mettre à jour leur propre compte et les super-administrateurs peuvent mettre à jour n'importe quel compte
     if (req.params.id !== req.user.id && req.user.role !== Role.SuperAdmin) {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    accountService.update(req.params.id, req.body)
+        .then(account => res.json(account))
+        .catch(next);
+}
+
+function edit(req, res, next) {
+    if (req.params.id !== req.user.id && req.user.role !== Role.Admin) {
         return res.status(401).json({ message: 'Unauthorized' });
     }
 
