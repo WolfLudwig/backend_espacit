@@ -36,10 +36,10 @@ app.patch('*', requireAuth);
 
 app.use('/api/users', userRoutes);
 app.use('/api/post', postRoutes);
+app.use('/api/comment', commentRoutes);
 app.use('/api/relation', relationRoutes);
 app.use('/api/category', categoryRoutes);
 app.use('/api/ressourceType', ressourceTypeRoutes);
-app.use('/api/comment', commentRoutes);
 // app.get('/jwtid/:token', requireAuth, (req, res) => {
 //     console.log("dans le requireAuth")
 //   });
@@ -52,7 +52,8 @@ app.use('/api/comment', commentRoutes);
 
 mongoose.connect('mongodb+srv://Admin_1:theBoys123@cluster0.pqby2.mongodb.net/Cluster0?retryWrites=true&w=majority',
   { useNewUrlParser: true,
-    useUnifiedTopology: true })
+    useUnifiedTopology: true,
+    autoIndex: false })
   .then(() => console.log('Connexion à MongoDB réussie !'))
   .catch(() => console.log('Connexion à MongoDB échouée !'));
 

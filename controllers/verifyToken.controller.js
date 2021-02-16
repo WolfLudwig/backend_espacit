@@ -42,6 +42,10 @@ module.exports.requireAuth = async (req, res, next) => {
         }
         
     }
+    else
+    {
+        next();
+    }
 }
 
 module.exports.checkUser = (req, res, next) => {

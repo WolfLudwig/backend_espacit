@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const CommentModel = require('./comment.model');
 
 const PostSchema = mongoose.Schema(
     {
@@ -39,11 +40,38 @@ const PostSchema = mongoose.Schema(
                     commenterId : String,
                     commenterPseudo : String,
                     text : String,
+                },
+            ],
+        },
+        answers : {
+            type : 
+            [
+                {
+                    commId : String,
+                    commenterIdent :String,
+                    commPseudo : String,
                     answerId : String,
                     answerPseudo : String,
                     answertext : String,
-                },
-            ],
+                }
+              
+
+            ]
+        },
+        thread : {
+            type : 
+            [
+                {
+                    threadPostId : String,
+                    threadAsnwId :String,
+                    threadPseudo : String,
+                    threadMyId : String,
+                    threadMyPseudo : String,
+                    threadText : String,
+                }
+              
+
+            ]
         },
         relation : { 
             type :

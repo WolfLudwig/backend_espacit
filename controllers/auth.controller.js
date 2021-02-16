@@ -26,16 +26,23 @@ const maxAge = 3 * 24 * 60 * 60 * 1000;
 // }
 
 module.exports.signUp = async (req,res) => {
+    console.log( " dans le signUp ???")
     console.log(req.body);
     const {pseudo, email, password} = req.body
     try {
         const user = await UserModel.create({pseudo, email, password});
         this.logIn = true;
-        res.status(201).json({ user: user._id});
+        const token = createToken(user._id);
+        res.cookie('jwt', token, { httpOnly: true, maxAge });
+ 
+        res.status(201).json({ idToken : token,
+                               expiresIn : maxAge,
+                               pseudo : user.pseudo});
+ 
     }
     catch(err) {
         const errors = signUpErrors(err);
-        res.status(200).send({ errors });
+        res.status(404).send({ errors });
     }
 }
 
@@ -50,18 +57,19 @@ module.exports.signIn = async (req, res) => {
        console.log(user);
 
        const token = createToken(user._id);
-       console.log(token + " a envoyer pour l'utilisateur");
        res.cookie('jwt', token, { httpOnly: true, maxAge });
 
        res.status(201).json({ idToken : token,
                               expiresIn : maxAge,
                               pseudo : user.pseudo});
 
+
     }
     catch (err){
         const errors = signInErrors(err);
+        console.log(errors);
 
-        res.status(200).send({ errors });
+        res.status(404).send({ errors });
       }
 }
 

@@ -2,29 +2,23 @@ const mongoose = require('mongoose');
 
 const commentSchema = new mongoose.Schema(
     {
-        commenterId : {
-            type : String,
-            required : true,
-            unique : true,
-            trim : true
-        },
-        commenterPseudo : {
-            type: String,
-            required: true,
-            minlength: 3,
-            maxlength: 55,
-            unique: true,
-            trim: true
-        },
-        text : {
-            type: String,
-            required: true,
-            trim: true
+        comments: {
+            type : 
+            [
+                {
+                    postId : String,
+                    commenterId : String,
+                    commenterPseudo : String,
+                    text : String,
+                },
+                {
+                    timestamps : true,
+                }
+            ],
+
         },
     },
-    {
-        timestamps : true,
-    }
+
 );
 
 

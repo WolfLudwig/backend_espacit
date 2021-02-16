@@ -1,12 +1,11 @@
 const router = require('express').Router();
 const authController = require('../controllers/auth.controller');
 const userController = require('../controllers/user.controller');
-const verify = require('../controllers/verifyToken.controller');
 
 
 
 //auth
-router.post("/", authController.signUp);
+router.post("/signup", authController.signUp);
 router.post("/signin", authController.signIn);
 router.get("/logout", authController.logout);
 router.get("/isLog", authController.isLog);
