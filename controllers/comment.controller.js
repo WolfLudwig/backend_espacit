@@ -6,6 +6,25 @@ module.exports.getAllComments = async (req, res) => {
     res.status(200).json(comment);
 };
 
+module.exports.getAllCommentsById = async (req, res) => {
+    console.log(" dans le getAllCommentsById !");
+    console.log(req.params.id + " l'id à traiter");
+
+    CommentModel.findOne({"comments.postId" : req.params.id},
+    (err, docs) =>
+        {
+            if(err) 
+            {
+                console.log(err)
+            }
+            else
+            {
+                console.log(docs + " ce que j'ai retrouvé en commentaires")
+                res.status(200).json(docs);
+            }
+    });
+};
+
 module.exports.getOneComment = (req,res) => {
     if (!ObjectID.isValid(req.params.id))
     {
@@ -52,19 +71,129 @@ module.exports.deleteComment = (req, res) =>{
 }
 
 module.exports.addComment = async (req, res) =>{
-    const newComm = new CommentModel({
-        commenterId: req.body.commenterId,
-        commenterPseudo: req.body.commenterPseudo,
-        text: req.body.text,
-        timesTamp: new Date().getTime(),
-    });
+    console.log(" dans addComment");
+    console.log(req.body.idress + " ce que je dois chercher ou ajouter");
 
-    try{
-        const comm = await newComm.save();
-        return res.status(201).json(comm);
+    try {
+         CommentModel.find({"comments.postId" :  req.body.idress}, (err, docs) =>
+        {
+            let id;
+            console.log(docs);
+            docs.map(resp =>
+                {
+                    console.log(resp._id)
+                    id = resp._id;
+                })
+
+            if(!err)
+            {
+
+                 CommentModel.findByIdAndUpdate(
+                     {_id : id},
+                     {
+                         $push: {
+                             comments : 
+                             {
+                                 postId : req.body.idress,
+                                 commenterId: res.locals._id,
+                                 commenterPseudo: res.locals.pseudo,
+                                 text: req.body.message,
+                                 timesTamp: new Date().getTime(),
+                             }    
+                         },
+                     },
+                     { new: true },
+                     (err, docs) => {
+                         if (!err) 
+                         {
+                             console.log(docs + " le commentaire est pushé ! ");
+                             return res.status(200).json(docs);
+        
+                         }
+                         else
+                         {
+                             console.log(err);
+                         }
+                     },
+                 ); 
+            }
+        }
+    );
+
     }
-    catch (err){
-        return res.status(400).send(err);
+    catch
+    {
+        const newComm = new CommentModel(
+            {
+                comments : 
+                {
+                    postId : req.body.idress,
+                    commenterId: res.locals._id,
+                    commenterPseudo: res.locals.pseudo,
+                    text: req.body.message,
+                    timesTamp: new Date().getTime(),
+                }
+    
+    
+        });
+        console.log(newComm + " à envoyer en base");
+    
+        try{
+             const comm = CommentModel.create(newComm);
+             res.status(200).send(comm);
+
+    
+        }
+        catch (err){
+            console.log(err + " sortie du try commentModel.save()");
+            return res.status(400).send(err);
+        }
+
     }
+
+    
+
+
+   
 }
 
+//Commentaires
+
+module.exports.commentPost = async (req,res) => {
+
+    if (!ObjectID.isValid(req.body.idress))
+    {
+        return res.status(400).send("ID unknown : " + req.body.idress);
+    }
+
+   try {
+       CommentModel.findByIdAndUpdate(
+           req.body.idress,
+           {
+               $push: {
+                   comments : 
+                   {
+                       postId : req.body.idress,
+                       commenterId: res.locals._id,
+                       commenterPseudo: res.locals.pseudo,
+                       text: req.body.message,
+                       timesTamp: new Date().getTime(),
+                   }    
+               },
+           },
+           { new: true },
+           (err, docs) => {
+               if (!err) 
+               {
+                   return res.status(200).json(docs);
+
+               }
+                   
+               else return res.status(400).send(err);
+           },
+       );   
+   }
+   catch (err) {
+       return res.status(400).send(err);
+   }
+}

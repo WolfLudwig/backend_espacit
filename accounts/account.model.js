@@ -46,4 +46,6 @@ schema.set('toJSON', {
     }
 });
 
-module.exports = mongoose.model('Account', schema);
+const AccountModel = mongoose.model('Account', schema);
+
+module.exports = AccountModel;
