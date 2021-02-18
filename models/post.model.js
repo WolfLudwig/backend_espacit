@@ -22,6 +22,9 @@ const PostSchema = mongoose.Schema(
         video: {
             type: String,
         },
+        description : {
+            type : String,
+        },
         likers: {
             type: 
             [
@@ -77,6 +80,7 @@ const PostSchema = mongoose.Schema(
             type :
              [
                  {
+                     _id : String,
                      title : String,
                      description : String,
                  }
@@ -86,6 +90,7 @@ const PostSchema = mongoose.Schema(
 
         [
             {
+                _id : String,
                 title : String,
                 description : String,
             }
@@ -95,8 +100,9 @@ const PostSchema = mongoose.Schema(
             type : 
         [
             {
-            title : String,
-            description : String,
+                _id : String,
+                title : String,
+                description : String,
             }
         ]        }
     },

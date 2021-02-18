@@ -14,28 +14,6 @@ const ObjectID = require('mongoose').Types.ObjectId;
 
   }
 
-//  module.exports.readPost = async (req, res, next) =>{
-//     console.log( "dans le readPost");
-
-//     try
-//     {
-//        await PostModel.find((err,docs) => {
-//            if (err)  res.send(err);
-//            else
-//            {
-//                 res.send(docs)
-//            }      
-//        }).sort({ createdAt: -1 });
-//     }
-//     catch(error)
-//     {
-//        console.log('Error to get data : ' + error);
-//     }
-     
-
-// }
-
-
 
 module.exports.getOnePost = (req, res) =>{
     console.log("je suis dans getOnePost");
@@ -90,7 +68,7 @@ module.exports.getPostsByFilters = (req, res) =>{
 //CAS 1
     if(cat && rel && type)
     {
-        PostModel.find({ $and :[ {"category._id" : { $in :arrayObjectCat }}, {"relation._id" : {$in : arrayObjectRel }}, {"ressourceType._id" : {$in  : arrayObjectType}}] }, (err, docs) =>
+        PostModel.find({ $and :[ {"category._id" : { $in :[arrayObjectCat] }}, {"relation._id" : {$in : arrayObjectRel }}, {"ressourceType._id" : {$in  : arrayObjectType}}] }, (err, docs) =>
         {
             if(err) console.log(err + " j'ai  PAS trouvé CAS 1")
             else console.log(docs + " j'ai trouvé CAS 1"), res.status(200).send(docs)
@@ -186,57 +164,76 @@ module.exports.createPost = async (req, res) =>{
 
     //console.log(req.headers['x-access-token'] + " token à gérer");
     console.log(res.locals._id + " local user token");
-    console.log(req.body + " corps de la requete");
+
+    console.log(req.body.category._id + " id cat")
+
+    const bodysReq = JSON.parse(JSON.stringify(req.body));
+    console.log(bodysReq);
+
+    console.log(req.body.relation)
+
+    console.log(bodysReq.relation)
+
 
         const newPost = new PostModel({
             posterId: res.locals._id,
             posterPseudo : res.locals.pseudo,
             message: req.body.message,
             video: req.body.video,
+            picture : req.body.picture,
+            description : req.body.description,
             likers: req.body.likers, 
-            comments: req.body.comments,
+            
             relation : req.body.relation,
+
             category : req.body.category,
             ressourceType : req.body.ressourceType
 
         });
+        console.log(newPost)
 
-        try{
-            const post = await newPost.save();
-            return res.status(201).json(post);
-        }
-        catch (err){
-            return console.log(err), res.status(400).send(err);
-        };
+         try{
+             const post = await newPost.save();
+             return res.status(201).json(post);
+         }
+         catch (err){
+             return console.log(err), res.status(400).send(err);
+         };
         
 };
 
 module.exports.updatePost = (req, res) =>{
-    console.log("je suis dans update");
-    if (!ObjectID.isValid(req.params.id))
-        return res.status(400).send("ID unknown : " + req.params.id);
+    if (!ObjectID.isValid(req.body._id))
+        return res.status(400).send("ID unknown : " + req.body._id);
 
     const updatedRecord = {
-        message : req.body.message
+        category : req.body.category,
+        relation : req.body.relation,
+        ressourceType : req.body.ressourceType,
+        message : req.body.message,
+        picture : req.body.picture,
+        description : req.body.description
     };
 
-    PostModel.findByIdAndUpdate(
-        req.params.id,
-        { $set: updatedRecord },
-        { new: true },
-        (err,docs) => {
-            if (!err) res.send(docs);
-            else console.log("Update error : " + err);
-        }
-    );
+       PostModel.findByIdAndUpdate(
+           req.body._id,
+           { $set: updatedRecord },
+           { new: true },
+           (err,docs) => {
+               if (!err) res.send(docs);
+               else console.log("Update error : " + err);
+           }
+       );
 };
 
 module.exports.deletePost = (req, res) =>{
+    console.log("dans le delete")
+    console.log(req.params)
     if (!ObjectID.isValid(req.params.id))
     return res.status(400).send("ID unknown : " + req.params.id);
 
     PostModel.findByIdAndRemove(req.params.id, (err, docs) => {
-        if(!err) res.send(docs);
+        if(!err) console.log(docs), res.send(docs);
         else console.log("Delete error : " + err);
     })
 }
@@ -245,7 +242,6 @@ module.exports.deletePost = (req, res) =>{
 //Likes
 module.exports.likePost = async (req, res, next) =>
 {
-
 
     try{
         const usr = new UserModel();

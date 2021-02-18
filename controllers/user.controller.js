@@ -7,6 +7,23 @@ module.exports.getAllUsers = async (req, res) => {
     res.status(200).json(users);
 };
 
+module.exports.checkLikes= async (req, res) => {
+    try
+    {
+        await UserModel.find({_id : res.locals._id}, (err, docs) =>
+        {
+            if(!err) UserModel.find({likes : req.params.id}, (err, docs) =>
+            {
+                if(!err) res.status(200).send(docs)
+            })
+        })
+    }
+    catch
+    {
+        res.status(404).send("user not found");
+    }
+};
+
 module.exports.getOneUser = (req, res) =>
 {
     console.log( " dans getOneUser !! !!! !" );

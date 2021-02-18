@@ -6,10 +6,11 @@ router.get('/:id', postController.getOnePost);
 router.get('/filters/:cat/:rel/:type', postController.getPostsByFilters);
 router.get('/liked-post/:id', postController.getRessourcesByLikes);
 router.post('/', postController.createPost);
-router.put('/:id', postController.updatePost);
+//router.put('/:id', postController.updatePost);
 router.delete('/:id', postController.deletePost);
 router.patch('/like/', postController.likePost);
 router.patch('/unlike-post/', postController.unlikePost);
+router.patch('/update/', postController.updatePost);
 
 
 //commentaire

@@ -9,6 +9,8 @@ module.exports.getAllRessourceType = async (req, res) => {
 
 //trouver un seul utilisateur
 module.exports.getOneRessourceType = (req,res) => {
+    console.log(" dans le getressourceType")
+    console.log(req.params);
     if (!ObjectID.isValid(req.params.id))
     {
         return res.status(400).send('ID unknown : ' + req.params.id)

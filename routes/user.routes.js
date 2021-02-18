@@ -12,6 +12,7 @@ router.get("/isLog", authController.isLog);
 
 // user dusplay (block),
 
+router.get("/likes/:id", userController.checkLikes);
 router.get("/infos/:_id", userController.getOneUser);
 router.get("/", userController.getAllUsers);
 router.get("/disctinct/:id", userController.getAllUsersDistinct);

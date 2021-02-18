@@ -8,6 +8,8 @@ module.exports.getAllRelations = async (req, res) => {
 };
 
  module.exports.getOneRelationsById = (req,res) => {
+     console.log(" dans le getonerelation");
+     console.log(req.params);
      if (!ObjectID.isValid(req.params.id))
          return res.status(400).send('ID unknown : ' + req.params.id)
      RelationModel.findById(req.params.id, (err, docs) => {

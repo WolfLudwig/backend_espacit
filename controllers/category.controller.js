@@ -9,12 +9,15 @@ module.exports.getAllCategories = async (req, res) => {
 
 //trouver un seul utilisateur
 module.exports.getOneCategory = (req,res) => {
+    console.log(req.params)
+
+    console.log( " dans le getOneCategory")
     if (!ObjectID.isValid(req.params.id))
     {
         return res.status(400).send('ID unknown : ' + req.params.id)
     }
     CategoryModel.findById(req.params.id, (err, docs) => {
-        if (!err) res.send(docs);
+        if (!err) console.log(docs), res.send(docs);
         else console.log('ID unknown : ' + err);
     });
 };
