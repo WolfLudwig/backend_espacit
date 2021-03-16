@@ -4,7 +4,8 @@ const ObjectID = require('mongoose').Types.ObjectId;
 //trouver tout les utilisateurs
 module.exports.getAllRessourceType = async (req, res) => {
     const ressourceType = await RessourceTypeModel.find();
-    res.status(200).json(ressourceType);
+    console.log(ressourceType + " ressourcestypes envoyés")
+    res.status(201).send(ressourceType);
 };
 
 //trouver un seul utilisateur

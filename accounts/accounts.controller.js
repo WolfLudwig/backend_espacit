@@ -17,6 +17,7 @@ router.post('/validate-reset-token', validateResetTokenSchema, validateResetToke
 router.post('/reset-password', resetPasswordSchema, resetPassword);
 router.get('/', authorize(Role.SuperAdmin), getAll);
 router.get('/admin', authorize(Role.Admin), getAllByAdmin);
+router.get("/infos/:id", GetCurrentUser);
 router.get('/:id', authorize(), getById);
 router.get('/admin/:id', authorize(), getOneUser);
 router.post('/', authorize(Role.SuperAdmin), createSchema, create);
@@ -25,6 +26,21 @@ router.put('/admin/:id', authorize(), updateSchema, edit);
 router.delete('/:id', authorize(), _delete);
 
 module.exports = router;
+
+function GetCurrentUser(req, res, next) {
+    console.log(req.params)
+    console.log("DANS GET CURRENTUSER")
+    accountService.GetCurrentUser(req.params.id).then(
+        ({...account}) =>
+        {
+            console.log("JE RENVOI ");
+            console.log(account._doc);
+            res.json(account._doc);
+        }
+    )
+    
+
+}
 
 function authenticateSchema(req, res, next) {
     const schema = Joi.object({
@@ -45,8 +61,12 @@ function authenticate(req, res, next) {
         .catch(next);
 }
 
+
 function refreshToken(req, res, next) {
     const token = req.cookies.refreshToken;
+    console.log(token)
+    console.log("TOKEN POUR REFRESH");
+
     const ipAddress = req.ip;
     accountService.refreshToken({ token, ipAddress })
         .then(({ refreshToken, ...account }) => {
@@ -66,6 +86,7 @@ function revokeTokenSchema(req, res, next) {
 function revokeToken(req, res, next) {
     // accepter le jeton du corps de la requête ou du cookie
     const token = req.body.token || req.cookies.refreshToken;
+    console.log(token + " token de revoke")
     const ipAddress = req.ip;
 
     if (!token) return res.status(400).json({ message: 'Token is required' });
@@ -273,5 +294,7 @@ function setTokenCookie(res, token) {
         httpOnly: true,
         expires: new Date(Date.now() + 7*24*60*60*1000)
     };
-    res.cookie('refreshToken', token, cookieOptions);
+    console.log(typeof(token));
+    console.log(token);
+    res.cookie('refreshToken', token.toString(), cookieOptions);
 }

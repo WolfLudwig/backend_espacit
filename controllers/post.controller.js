@@ -4,38 +4,21 @@ const postModel = require('../models/post.model');
 const AccountModel = require('../accounts/account.model')
 const CommentModel = require('../models/comment.model');
 const ObjectID = require('mongoose').Types.ObjectId;
+const accountService = require('../accounts/account.service');
+const jwt = require('jsonwebtoken');
 
 
   module.exports.readPost =  (req, res, next) =>{
       console.log( "dans le readPost");
+      const token = req.headers;
+      const token2 = req.cookies.refreshToken;
+
         PostModel.find((err,docs) => {
           if (!err)  res.send(docs);
           else console.log('Error to get data : ' + err);
       }).sort({ createdAt: -1 });
 
   }
-
-//  module.exports.readPost = async (req, res, next) =>{
-//     console.log( "dans le readPost");
-
-//     try
-//     {
-//        await PostModel.find((err,docs) => {
-//            if (err)  res.send(err);
-//            else
-//            {
-//                 res.send(docs)
-//            }      
-//        }).sort({ createdAt: -1 });
-//     }
-//     catch(error)
-//     {
-//        console.log('Error to get data : ' + error);
-//     }
-     
-
-// }
-
 
 
 module.exports.getOnePost = (req, res) =>{
@@ -186,29 +169,33 @@ module.exports.getPostsByCats = (req, res) =>{
 module.exports.createPost = async (req, res) =>{
 
     //console.log(req.headers['x-access-token'] + " token à gérer");
-    console.log(res.locals._id + " local user token");
-    console.log(req.body + " corps de la requete");
+    console.log(req.body.account);
+    console.log(req.body.ress)
+    console.log(req.body.account.id)
+    console.log(" corps de la requete");
 
-        const newPost = new PostModel({
-            posterId: res.locals._id,
-            posterPseudo : res.locals.pseudo,
-            message: req.body.message,
-            video: req.body.video,
-            likers: req.body.likers, 
-            comments: req.body.comments,
-            relation : req.body.relation,
-            category : req.body.category,
-            ressourceType : req.body.ressourceType
+          const newPost = new PostModel({
+              posterId: req.body.account.id,
+              posterPseudo : req.body.account.pseudo,
+              picture : req.body.ress.picture,
+              message: req.body.ress.message,
+              video: req.body.ress.video,
+              likers: req.body.ress.likers, 
+              description : req.body.ress.description,
+              comments: req.body.ress.comments,
+              relation : req.body.ress.relation,
+              category : req.body.ress.category,
+              ressourceType : req.body.ress.ressourceType
 
-        });
+          });
 
-        try{
-            const post = await newPost.save();
-            return res.status(201).json(post);
-        }
-        catch (err){
-            return console.log(err), res.status(400).send(err);
-        };
+          try{
+              const post = await newPost.save();
+              return res.status(201).json(post);
+          }
+          catch (err){
+              return console.log(err), res.status(400).send(err);
+          };
         
 };
 
@@ -249,27 +236,29 @@ module.exports.likePost = async (req, res, next) =>
 
 
     try{
-        const usr = new AccountModel();
-
+        let usr = new AccountModel();
 
         await AccountModel.findByIdAndUpdate(
-            res.locals._id,
+            req.body.idUser,
             {
                 $addToSet: { likes : req.body.idRess },
             },
             { new: true },
             (err, docs) => {
                 if (err) return console.log(err + " utilisateur non modifié "), res.status(400).send(err);
+                else usr = docs;
             }
-        );
 
+        );
+        console.log(usr)
+        console.log(" usr de findbyId")
          PostModel.findByIdAndUpdate(
             req.body.idRess,
             {
                 $addToSet: { likers: 
-                    { _id : res.locals._id,
-                    pseudo : res.locals.pseudo,
-                    email : res.locals.email} },
+                    { _id : req.body.idUser,
+                    pseudo : usr.lastName,
+                    email : usr.email} },
             },
             { new: true },
             (err, docs) => {
@@ -287,9 +276,7 @@ module.exports.unlikePost = async (req,res) =>{
 
     console.log(" Je suis dans unLike !! ");
     console.log(req.body);
-    console.log(res.locals._id + " idSession")
-    console.log(res.locals.pseudo + " pseudoSession")
-    console.log(res.locals.email + " emailSession")
+    let usr = new AccountModel();
 
     if (!ObjectID.isValid(req.body.idRess))
     return res.status(400).send("ID unknown : " + req.body.idRess);
@@ -297,7 +284,7 @@ module.exports.unlikePost = async (req,res) =>{
     try{
 
         await AccountModel.findByIdAndUpdate(
-            res.locals._id,
+            req.body.idUser,
             {
                 $pull: { likes : req.body.idRess },
             },
@@ -312,7 +299,7 @@ module.exports.unlikePost = async (req,res) =>{
         await PostModel.findByIdAndUpdate(
             req.body.idRess,
             {
-                $pull: { likers :  {_id : res.locals._id }},
+                $pull: { likers :  {_id : req.body.idUser }},
             },
             { new: true },
             (err, docs) => {
@@ -342,6 +329,7 @@ module.exports.commentPost = async (req,res) => {
      {
          return res.status(400).send("ID unknown : " + req.body.idress);
      }
+     console.log(req.body);
 
     try {
         PostModel.findByIdAndUpdate(
@@ -350,8 +338,8 @@ module.exports.commentPost = async (req,res) => {
                 $push: {
                     comments : 
                     {
-                        commenterId: res.locals._id,
-                        commenterPseudo: res.locals.pseudo,
+                        commenterId: req.body.posterId,
+                        commenterPseudo: req.body.pseudo,
                         text: req.body.message,
                         timesTamp: new Date().getTime(),
                     }    
@@ -468,7 +456,6 @@ module.exports.getRessourcesByLikes= async (req, res) => {
 }
 
 module.exports.answerPost = async (req,res) => {
-    console.log(res.locals._id + " idUser");
     console.log(req.body);
 
      if (!ObjectID.isValid(req.body.idPost))
@@ -485,8 +472,8 @@ module.exports.answerPost = async (req,res) => {
                         commId : req.body.idPost,
                         commenterIdent :req.body.commId,
                         commPseudo : req.body.pseudo,
-                        answerId : res.locals._id,
-                        answerPseudo : res.locals.pseudo,
+                        answerId : req.body.posterId,
+                        answerPseudo : req.body.pseudos,
                         answertext : req.body.message,
                     }    
                 },
@@ -509,7 +496,6 @@ module.exports.answerPost = async (req,res) => {
 }
 
 module.exports.askAnswer = async (req,res) => {
-    console.log(res.locals._id + " idUser");
     console.log(req.body);
     console.log(" Pour pousser en thread ! ");
 
@@ -527,8 +513,8 @@ module.exports.askAnswer = async (req,res) => {
                         threadPostId : req.body.idPost,
                         threadAsnwId :req.body.commId,
                         threadPseudo : req.body.pseudo,
-                        threadMyId : res.locals._id,
-                        threadMyPseudo : res.locals.pseudo,
+                        threadMyId : req.body.posterId,
+                        threadMyPseudo : req.body.pseudos,
                         threadText : req.body.message,
                     }    
                 },

@@ -22,6 +22,9 @@ const PostSchema = mongoose.Schema(
         video: {
             type: String,
         },
+        description : {
+            type : String,
+        },
         likers: {
             type: 
             [

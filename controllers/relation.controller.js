@@ -4,6 +4,7 @@ const ObjectID = require('mongoose').Types.ObjectId;
 //trouver tout les utilisateurs
 module.exports.getAllRelations = async (req, res) => {
     const relations = await RelationModel.find();
+    console.log(relations + " relations envoyées")
     res.status(201).json(relations);
 };
 

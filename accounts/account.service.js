@@ -5,6 +5,7 @@ const crypto = require("crypto");
 const sendEmail = require('_helpers/send-email');
 const db = require('_helpers/db');
 const Role = require('_helpers/role');
+const ObjectID = require('mongoose').Types.ObjectId;
 
 module.exports = {
     authenticate,
@@ -19,8 +20,22 @@ module.exports = {
     getById,
     create,
     update,
-    delete: _delete
+    delete: _delete,
+    GetCurrentUser,
 };
+
+async function GetCurrentUser(idUsr)
+{
+    console.log(idUsr)
+    var idUser = ObjectID(idUsr);
+
+    const account = await db.Account.findById({_id : idUser});
+    if(!account)
+    {
+        throw 'Unknown user';
+    }
+    return account;
+}
 
 async function authenticate({ email, password, ipAddress }) {
     const account = await db.Account.findOne({ email });
@@ -45,8 +60,10 @@ async function authenticate({ email, password, ipAddress }) {
 }
 
 async function refreshToken({ token, ipAddress }) {
+    console.log(token + " token pour reresh")
     const refreshToken = await getRefreshToken(token);
     const { account } = refreshToken;
+    console.log(account + " account suit au refresh token du authenticate");
 
     // remplacer l'ancien jeton d'actualisation par un nouveau et enregistrer
     const newRefreshToken = generateRefreshToken(account, ipAddress);
@@ -101,6 +118,8 @@ async function register(params, origin) {
     // envoyer un e-mail
     await sendVerificationEmail(account, origin);
 }
+
+
 
 async function verifyEmail({ token }) {
     const account = await db.Account.findOne({ verificationToken: token });
@@ -233,6 +252,7 @@ function generateJwtToken(account) {
 
 function generateRefreshToken(account, ipAddress) {
     // créer un jeton d'actualisation qui expire dans 7 jours
+    console.log( "là on va générer un token à partir de l'account id : " + account.id)
     return new db.RefreshToken({
         account: account.id,
         token: randomTokenString(),
@@ -246,8 +266,8 @@ function randomTokenString() {
 }
 
 function basicDetails(account) {
-    const { id, title, pseudo, firstName, lastName, email, role, status, adress, city, zipCode, created, updated, isVerified } = account;
-    return { id, title, pseudo, firstName, lastName, email, role, status, adress, city, zipCode, created, updated, isVerified };
+    const { id, title, pseudo, firstName, lastName, email, role, status, likes, adress, city, zipCode, created, updated, isVerified } = account;
+    return { id, title, pseudo, firstName, lastName, email, role, status, likes, adress, city, zipCode, created, updated, isVerified };
 }
 
 async function sendVerificationEmail(account, origin) {

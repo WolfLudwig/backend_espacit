@@ -16,8 +16,10 @@ app.use(cookieParser());
 // autoriser les demandes de cors de n'importe quelle origine et avec des informations d'identification
 app.use(cors({ origin: (origin, callback) => callback(null, true), credentials: true }));
 
+
 // api routes
 app.use('/accounts', require('./accounts/accounts.controller'));
+app.use('/api/users', require('./routes/user.routes'));
 app.use('/api/post', require('./routes/post.routes'));
 app.use('/api/relation',require('./routes/relation.routes'));
 app.use('/api/category', require('./routes/categoy.routes'));
