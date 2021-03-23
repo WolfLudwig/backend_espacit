@@ -4,7 +4,9 @@ const ObjectID = require('mongoose').Types.ObjectId;
 
 //trouver tout les utilisateurs
 module.exports.getAllUsers = async (req, res) => {
-    const users = await AccountModel.find({role : {$eq : 'User'}});
+    console.log(req.params)
+    const users = await AccountModel.find({$and : [{role : {$eq :  "User"}}, {id : {$ne : req.params.id}}, {friend : {$ne : req.params.id}}]});
+    
     console.log(" ce que je retourne pour finfreinds");
     console.log(users);
     res.status(201).json(users);
@@ -53,9 +55,8 @@ module.exports.getAllUsersDistinct = async (req, res) => {
     {
         return res.status(400).send('ID unknown : ' + req.params.id)
     }
-    //> db.demo1.find({$nor:[{$and:[{'StudentName':'David'},{'StudentMarks':78}]}]});
     try {
-        const users = await UserModel.find({friend : {$ne :req.params.id}}, (err, docs) =>
+        const users = await UserModel.find({$and : [{friend : {$ne :req.params.id}},{role : {$eq : "User"}}]}, (err, docs) =>
         {
             if(!err)res.status(200).json(users);
             else res.status(400).send();

@@ -10,6 +10,7 @@ router.put('/:id', postController.updatePost);
 router.delete('/:id', postController.deletePost);
 router.patch('/like/', postController.likePost);
 router.patch('/unlike-post/', postController.unlikePost);
+router.patch('/update/', postController.updatePost);
 
 
 //commentaire

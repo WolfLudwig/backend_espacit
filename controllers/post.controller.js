@@ -24,6 +24,7 @@ const jwt = require('jsonwebtoken');
 module.exports.getOnePost = (req, res) =>{
     console.log("je suis dans getOnePost");
     console.log(req.params.id + " id récupéré de onePost");
+    console.log(req.params)
 
     PostModel.findById( {_id : req.params.id},
         (err,docs) => {
@@ -78,7 +79,7 @@ module.exports.getPostsByFilters = (req, res) =>{
         {
             if(err) console.log(err + " j'ai  PAS trouvé CAS 1")
             else console.log(docs + " j'ai trouvé CAS 1"), res.status(200).send(docs)
-        })
+        }).sort({ createdAt: -1 });
     }
 //CAS 2
     if(cat && !rel && !type)
@@ -87,7 +88,7 @@ module.exports.getPostsByFilters = (req, res) =>{
         {
             if(err) console.log(err + " j'ai  PAS trouvé CAS 2")
             else console.log(docs + " j'ai trouvé CAS 2"), res.status(200).send(docs)
-        })
+        }).sort({ createdAt: -1 });
 
     }
     //CAS 3
@@ -98,7 +99,7 @@ module.exports.getPostsByFilters = (req, res) =>{
         {
             if(err) console.log(err + " j'ai  PAS trouvé CAS 3")
             else console.log(docs + " j'ai trouvé CAS 3"), res.status(200).send(docs)
-        })
+        }).sort({ createdAt: -1 });
 
     }
     //CAS 4
@@ -109,7 +110,7 @@ module.exports.getPostsByFilters = (req, res) =>{
         {
             if(err) console.log(err + " j'ai  PAS trouvé CAS 4")
             else console.log(docs + " j'ai trouvé CAS 4"), res.status(200).send(docs)
-        })
+        }).sort({ createdAt: -1 });
 
     }
     //CAS 5
@@ -119,7 +120,7 @@ module.exports.getPostsByFilters = (req, res) =>{
         {
             if(err) console.log(err + " j'ai  PAS trouvé CAS 5")
             else console.log(docs + " j'ai trouvé CAS 5"), res.status(200).send(docs)
-        })
+        }).sort({ createdAt: -1 });
 
     }
     //CAS 6
@@ -129,7 +130,7 @@ module.exports.getPostsByFilters = (req, res) =>{
         {
             if(err) console.log(err + " j'ai  PAS trouvé CAS 6")
             else console.log(docs + " j'ai trouvé CAS 6"), res.status(200).send(docs)
-        })
+        }).sort({ createdAt: -1 });
 
     }
     //CAS 7
@@ -139,7 +140,7 @@ module.exports.getPostsByFilters = (req, res) =>{
         {
             if(err) console.log(err + " j'ai  PAS trouvé CAS 7")
             else console.log(docs + " j'ai trouvé CAS 7"), res.status(200).send(docs)
-        })
+        }).sort({ createdAt: -1 });
     }
         
 
@@ -201,15 +202,16 @@ module.exports.createPost = async (req, res) =>{
 
 module.exports.updatePost = (req, res) =>{
     console.log("je suis dans update");
-    if (!ObjectID.isValid(req.params.id))
-        return res.status(400).send("ID unknown : " + req.params.id);
+    console.log(req.body);
+    if (!ObjectID.isValid(req.body._id))
+        return res.status(400).send("ID unknown : " + req.body._id);
 
     const updatedRecord = {
-        message : req.body.message
+        ...req.body
     };
 
     PostModel.findByIdAndUpdate(
-        req.params.id,
+        req.body._id,
         { $set: updatedRecord },
         { new: true },
         (err,docs) => {

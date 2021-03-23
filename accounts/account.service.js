@@ -6,6 +6,8 @@ const sendEmail = require('_helpers/send-email');
 const db = require('_helpers/db');
 const Role = require('_helpers/role');
 const ObjectID = require('mongoose').Types.ObjectId;
+const { Console } = require('console');
+const AccountModel = require('./account.model');
 
 module.exports = {
     authenticate,
@@ -22,11 +24,107 @@ module.exports = {
     update,
     delete: _delete,
     GetCurrentUser,
+    addFriend,
+    friendsList,
+    unFriend,
+    getAllUsersDistinct
 };
+async function getAllUsersDistinct(id)
+{
+    console.log(" ID ACCOUNT SERVICE")
+    console.log(id)
+    if (!ObjectID.isValid(id))
+    {
+        return "error";
+    }
+    try {
+        
+        const users = await AccountModel.find({$and : [{friend : {$ne : id}},{role : {$eq : "User"}}]});
+            if(users)
+            {
+                console.log("JAI RETROUVE");
+                console.log(users)
+                return users;
+            }
+            else return "error";
+            
+    }
+    catch(error)
+    {
+        return "error";
+    }
+}
+
+
+async function unFriend(idFriend, idUser)
+{
+    console.log( "dns unFriend");
+    let Friend = ObjectID(idFriend);
+    let User = ObjectID(idUser);
+    console.log(Friend);
+    console.log(User);
+    try{
+        //remove to friend list
+        if (AccountModel.findByIdAndUpdate(
+            Friend,
+            { $pull: { friend: User}},
+            {new: true, upsert: true}, (err, docs)=>
+            {
+                if(!err) 
+                {
+                    console.log("RETOUR SUPPR AMI")
+                    console.log(docs)
+                }
+                else
+                {
+                    console.log(err)
+                }
+            }))
+        {
+            console.log("PREMIRE REQUETE OK")
+            const account = await AccountModel.findByIdAndUpdate(
+                User,
+                { $pull: { friend: Friend }},
+                {new: true, upsert: true},
+                (err, docs) => {
+                    if (err) console.log(err);
+                    else console.log(docs)
+    
+                }
+            )
+
+            if(account)
+            {
+                console.log("VALEUR ACCOUNT AVANT RETOUR CONTROLLER")
+            console.log(account)
+            return account
+            }
+        }
+
+    }
+    catch(err)
+    {
+        return "error";
+        
+    }
+}
+
+async function friendsList(idUser)
+{
+    console.log("DANS FRIENDLIST")
+    var idUsr = ObjectID(idUser);
+
+    const account = await AccountModel.find({friend : { $eq :  idUsr}});
+        if(account)
+        {
+            return account
+        }
+    
+        
+}
 
 async function GetCurrentUser(idUsr)
 {
-    console.log(idUsr)
     var idUser = ObjectID(idUsr);
 
     const account = await db.Account.findById({_id : idUser});
@@ -40,7 +138,18 @@ async function GetCurrentUser(idUsr)
 async function authenticate({ email, password, ipAddress }) {
     const account = await db.Account.findOne({ email });
 
+    console.log(account)
+    console.log(" ACCOUNT RECUP SUITE FINDBYEMAIL")
+
     if (!account || !account.isVerified || !bcrypt.compareSync(password, account.passwordHash)) {
+        if(!account.isVerified)
+        {
+            console.log( "dans l'erreur is verified");
+        }
+        if(!bcrypt.compareSync(password, account.passwordHash))
+        {
+            console.log( "dans l'erreur is password");
+        }
         throw 'Email or password is incorrect';
     }
     
@@ -63,7 +172,6 @@ async function refreshToken({ token, ipAddress }) {
     console.log(token + " token pour reresh")
     const refreshToken = await getRefreshToken(token);
     const { account } = refreshToken;
-    console.log(account + " account suit au refresh token du authenticate");
 
     // remplacer l'ancien jeton d'actualisation par un nouveau et enregistrer
     const newRefreshToken = generateRefreshToken(account, ipAddress);
@@ -82,6 +190,41 @@ async function refreshToken({ token, ipAddress }) {
         jwtToken,
         refreshToken: newRefreshToken.token
     };
+}
+
+async function addFriend(idFriend, idUser)
+{
+    console.log(idFriend + " friends controller")
+    console.log(idUser + " user controller")
+    try{
+        //ajouter a la liste d'ami
+        const account = await AccountModel.findByIdAndUpdate(
+            idUser,
+            { $addToSet: { friend: idFriend }},
+            { new: true, upsert: true },
+            (err,docs) => {
+                if (err) res.status(404).json(err);
+            }
+        );
+        AccountModel.findByIdAndUpdate(
+            idFriend,
+            { $addToSet: {friend: idUser }},
+            { new: true, upsert: true },
+            (err,docs) => {
+                if (err) return res.status(400).json(err);
+            }
+        );
+        if(account) 
+        {
+            console.log("COMPTE USER")
+            console.log(account);
+            return account
+        }
+    }
+    catch(err)
+    {
+        return res.status(500).json({ message: err});
+    }
 }
 
 async function revokeToken({ token, ipAddress }) {

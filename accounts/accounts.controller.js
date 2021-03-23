@@ -5,6 +5,7 @@ const validateRequest = require('_middleware/validate-request');
 const authorize = require('_middleware/authorize')
 const Role = require('_helpers/role');
 const accountService = require('./account.service');
+const AccountModel = require('./account.model');
 
 // routes
 router.post('/authenticate', authenticateSchema, authenticate);
@@ -24,17 +25,74 @@ router.post('/', authorize(Role.SuperAdmin), createSchema, create);
 router.put('/:id', authorize(), updateSchema, update);
 router.put('/admin/:id', authorize(), updateSchema, edit);
 router.delete('/:id', authorize(), _delete);
+router.patch('/friend', Addfriend);
+router.get('/myFriends/:id', getAllUsersDistinct );
+router.get('/friendsList/:id', friendsList );
+router.patch("/unfriend",unfriend);
 
 module.exports = router;
 
+function unfriend(req,res){
+
+   accountService.unFriend(req.body.idFriend, req.body.idUser)
+   .then(
+       (...account) =>
+       {
+           console.log("AVANT RETOUR UNFRIEND")
+           console.log(account)
+           console.log(typeof(account));
+           res.status(201).send(account)
+       }
+   )
+};
+
+function friendsList(req,res, next) {
+
+    accountService.friendsList(req.params.id).then(
+        (account) =>
+        {
+            console.log(account)
+            res.status(201).json(account);
+        }
+    )
+
+};
+
+function getAllUsersDistinct(req, res) {
+
+    console.log( " DANS LE DISCTINCT");
+    console.log(req.params);
+
+    accountService.getAllUsersDistinct(req.params.id).then(
+        (account)=>
+        {
+            console.log(account)
+            res.status(201).send(account)
+        }
+    )
+
+    
+};
+
+function Addfriend(req,res) {
+
+    console.log( "dns friend");
+    console.log(req.body.idFriend);
+    console.log(req.body.idUser);
+
+    accountService.addFriend(req.body.idFriend, req.body.idUser).then(
+        (account) =>
+        {
+            console.log(account)
+            res.status(201).send(account)
+        }
+    )
+};
+
 function GetCurrentUser(req, res, next) {
-    console.log(req.params)
-    console.log("DANS GET CURRENTUSER")
     accountService.GetCurrentUser(req.params.id).then(
         ({...account}) =>
         {
-            console.log("JE RENVOI ");
-            console.log(account._doc);
             res.json(account._doc);
         }
     )
@@ -51,6 +109,7 @@ function authenticateSchema(req, res, next) {
 }
 
 function authenticate(req, res, next) {
+    console.log(req.body);
     const { email, password } = req.body;
     const ipAddress = req.ip;
     accountService.authenticate({ email, password, ipAddress })
@@ -65,7 +124,6 @@ function authenticate(req, res, next) {
 function refreshToken(req, res, next) {
     const token = req.cookies.refreshToken;
     console.log(token)
-    console.log("TOKEN POUR REFRESH");
 
     const ipAddress = req.ip;
     accountService.refreshToken({ token, ipAddress })
@@ -86,7 +144,6 @@ function revokeTokenSchema(req, res, next) {
 function revokeToken(req, res, next) {
     // accepter le jeton du corps de la requête ou du cookie
     const token = req.body.token || req.cookies.refreshToken;
-    console.log(token + " token de revoke")
     const ipAddress = req.ip;
 
     if (!token) return res.status(400).json({ message: 'Token is required' });
