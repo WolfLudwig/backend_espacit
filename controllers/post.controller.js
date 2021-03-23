@@ -449,11 +449,12 @@ module.exports.getRessourcesByLikes= async (req, res) => {
         {
             if(!err) 
             {
+                console.log(docs);
                 return res.status(201).send(docs);
             }
 
             return res.status(404).send(err);
-        })
+        }).sort({ createdAt: -1 });
 
 }
 
