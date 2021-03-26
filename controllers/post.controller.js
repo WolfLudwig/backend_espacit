@@ -173,6 +173,7 @@ module.exports.createPost = async (req, res) =>{
     console.log(req.body.account);
     console.log(req.body.ress)
     console.log(req.body.account.id)
+    console.log(req.body);
     console.log(" corps de la requete");
 
           const newPost = new PostModel({
