@@ -6,6 +6,8 @@ const CommentModel = require('../models/comment.model');
 const ObjectID = require('mongoose').Types.ObjectId;
 const accountService = require('../accounts/account.service');
 const jwt = require('jsonwebtoken');
+const { report } = require('../accounts/accounts.controller');
+const reportModel = require('../models/report.model');
 
 
   module.exports.readPost =  (req, res, next) =>{
@@ -13,12 +15,67 @@ const jwt = require('jsonwebtoken');
       const token = req.headers;
       const token2 = req.cookies.refreshToken;
 
-        PostModel.find((err,docs) => {
+        PostModel.find({isSuspend : false},(err,docs) => {
           if (!err)  res.send(docs);
           else console.log('Error to get data : ' + err);
       }).sort({ createdAt: -1 });
 
   }
+  module.exports.readReportPost = async (req, res, next) =>
+  {
+   
+      const rep = await reportModel.find( {"post._id" : ObjectID(req.body.post._id)} , (err, docs) =>
+      {
+        if(docs.length == 0)
+        {
+            console.log(" je n'ai pas retouvé de report donc : ")
+            let report = new reportModel();
+            console.log(req.body)
+            report.post = {...req.body.post};
+            report.account = {...req.body.account};
+            console.log("OBJET REPORT");
+            console.log(report);
+        
+    
+            try
+            {
+              const reported = report.save();
+              console.log(reported) 
+              return res.status(201).json(reported);
+            }
+            catch (err)
+            {
+              return console.log(err), res.status(400).send(err);
+            };
+        }
+        else
+        {
+            console.log(" si t'as retrouvé montre moi")
+            console.log(docs)
+            return res.status(400).json("Ressource déjà signalée");
+        }
+      })
+  }
+
+  module.exports.reportComment = (req, res, next) =>
+  {
+      console.log(req.body);
+      let report = new reportModel();
+      report = {...req.body};
+      console.log(report)
+  }
+
+  module.exports.readPostAdmin =  (req, res, next) =>{
+    console.log( "dans le readPost");
+    const token = req.headers;
+    const token2 = req.cookies.refreshToken;
+
+      PostModel.find((err,docs) => {
+        if (!err)  res.send(docs);
+        else console.log('Error to get data : ' + err);
+    }).sort({ createdAt: -1 });
+
+}
 
 
 module.exports.getOnePost = (req, res) =>{
@@ -187,7 +244,9 @@ module.exports.createPost = async (req, res) =>{
               comments: req.body.ress.comments,
               relation : req.body.ress.relation,
               category : req.body.ress.category,
-              ressourceType : req.body.ress.ressourceType
+              ressourceType : req.body.ress.ressourceType,
+              isSuspend : false,
+              isRestricted : false
 
           });
 

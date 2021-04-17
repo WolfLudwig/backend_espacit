@@ -72,7 +72,6 @@ async function unFriend(idFriend, idUser)
             {
                 if(!err) 
                 {
-                    console.log("RETOUR SUPPR AMI")
                     console.log(docs)
                 }
                 else

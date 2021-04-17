@@ -1,7 +1,9 @@
+const { boolean } = require('joi');
 const mongoose = require('mongoose');
 const CommentModel = require('./comment.model');
+const Schema = mongoose.Schema;
 
-const PostSchema = mongoose.Schema(
+const PostSchema = new Schema(
     {
         posterId: {
             type: String,
@@ -101,11 +103,19 @@ const PostSchema = mongoose.Schema(
             title : String,
             description : String,
             }
-        ]        }
+        ]        
+        },
+        isSuspend : {
+            type : Boolean
+        },
+        isRestricted : 
+        {
+            type : Boolean
+        }
     },
     {
         timestamps: true,
     }
 );
-
-module.exports = mongoose.model('post',PostSchema);
+const PostModel = mongoose.model('post', PostSchema);
+module.exports = PostModel;

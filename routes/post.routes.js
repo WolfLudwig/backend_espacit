@@ -2,6 +2,7 @@ const router = require('express').Router();
 const postController = require('../controllers/post.controller');
 
 router.get('/', postController.readPost);
+router.get('/admin', postController.readPostAdmin);
 router.get('/:id', postController.getOnePost);
 router.get('/filters/:cat/:rel/:type', postController.getPostsByFilters);
 router.get('/liked-post/:id', postController.getRessourcesByLikes);
@@ -9,6 +10,7 @@ router.post('/', postController.createPost);
 router.put('/:id', postController.updatePost);
 router.delete('/:id', postController.deletePost);
 router.patch('/like/', postController.likePost);
+router.patch('/report/', postController.readReportPost);
 router.patch('/unlike-post/', postController.unlikePost);
 router.patch('/update/', postController.updatePost);
 

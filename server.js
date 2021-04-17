@@ -21,6 +21,7 @@ app.use(cors({ origin: (origin, callback) => callback(null, true), credentials: 
 app.use('/accounts', require('./accounts/accounts.controller'));
 app.use('/api/users', require('./routes/user.routes'));
 app.use('/api/post', require('./routes/post.routes'));
+app.use('/api/report', require('./routes/report.routes'));
 app.use('/api/relation',require('./routes/relation.routes'));
 app.use('/api/category', require('./routes/categoy.routes'));
 app.use('/api/ressourceType', require('./routes/ressourceType.routes'));
